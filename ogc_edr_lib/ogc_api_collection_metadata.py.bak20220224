@@ -1,0 +1,389 @@
+from openapi_server.models.edr_feature_collection_geo_json import (
+    EdrFeatureCollectionGeoJSON
+)
+from multidict import CIMultiDict
+from typing import Tuple, Union
+from aiohttp import web
+from urllib.parse import urlparse, parse_qs
+from ogc_edr_lib.l10n import LocaleTranslator
+from openapi_server.models.extent import (
+    Extent, ExtentSpatial, ExtentTemporal, ExtentVertical
+)
+from openapi_server.models.collection import (
+    Collection
+)
+from openapi_server.models.collections import (
+    Collections
+)
+from openapi_server.models.link import (
+    Link as collectionLink
+)
+from openapi_server.models.collection_data_queries import(
+    CollectionDataQueries
+)
+from openapi_server.models.collection_data_queries_position import(
+    CollectionDataQueriesPosition
+)
+from ogc_edr_lib.ogc_api import OgcApi
+import json
+from datetime import datetime
+from ogc_edr_lib.l10n import LocaleTranslator
+
+
+class OgcApiCollectionMetadata(OgcApi):
+    def list_data_items(
+            self, request: web.Request, collection_id,
+            bbox=None, datetime=None, limit=None):
+        qstrs = parse_qs(request.query_string)
+        the_locale = qstrs.get('locale')
+        the_formats = qstrs.get('f')
+        the_formats = self.get_full_media_type_from_f_param(the_formats)
+        best_match = self._negotiate_content_best_match(request, the_formats)
+
+        # thefc = EdrFeatureCollectionGeoJSON()
+        # thecollection_value = self.config.config["resources"][collection_id]
+        translator = LocaleTranslator()
+        thecollection_value = translator.get_config_translated(
+            the_locale)["resources"][collection_id]
+        thecollection_metadata = self._form_collection(
+            collection_id, thecollection_value, best_match)
+
+        retcontent = self._format_content_collection(
+            thecollection_metadata, best_match)
+        headers = CIMultiDict()
+        headers["Content-Type"] = best_match
+
+        return headers, 200, retcontent
+
+    def _select_items_by_key_value(
+            self, pdict: dict, key: str, value: str):
+        """
+        helper function to filter a dict by a dict key
+
+        :param dict_: ``dict``
+        :param key: dict key
+        :param value: dict key value
+
+        :returns: filtered ``dict``
+        """
+        return {k: v for (k, v) in pdict.items() if v[key] == value}
+
+    def get_queries(self, request: web.Request, collection_id, f=None):
+        """
+        List collections
+
+        :param request: A request object
+        :param bbox: bounding bbox
+        :param datetime: datetime
+        :param f: format. It can be either in json, html, etc. Or fully spelled
+        out as application/json, text/html
+
+        :returns: tuple of headers, status code, content
+        """
+        qstrs = parse_qs(request.query_string)
+        the_locale = qstrs.get('locale')
+        the_formats = qstrs.get('f')
+        the_formats = self.get_full_media_type_from_f_param(the_formats)
+        best_match = self._negotiate_content_best_match(request, the_formats)
+
+        thecollection_value = self.config.config["resources"][collection_id]
+        thecollection_metadata = self._form_collection(
+            collection_id, thecollection_value, best_match)
+
+        retcontent = self._format_content_collection(
+            thecollection_metadata, best_match)
+        headers = CIMultiDict()
+        headers["Content-Type"] = best_match
+
+        return headers, 200, retcontent
+
+    def _form_collection(
+        self, key, value, r_media_type, thelocale="en_US"
+    ):
+        """
+        Form a collection record from key-value pair.
+
+        :param key: A unique id for collection
+        :param value: The collection metadata in config file.
+
+        :returns: Collection
+        """
+        translator = LocaleTranslator()
+
+        title = translator.translate(value=value["title"], loc=thelocale)
+        id = key
+        description = translator.translate(
+            value=value["description"], loc=thelocale)
+        keywords = translator.translate(value=value["keywords"], loc=thelocale)
+        spatial = self._form_spatial_extent(value)
+        temporal = self._form_temporal_extent(value)
+        vertical = self._form_vertical_extent(value)
+        extent = Extent(spatial=spatial, temporal=temporal, vertical=vertical)
+        thelinks = self._form_collection_links(id, value, r_media_type)
+        data_queries = self._form_collection_data_queries(
+            dataqueries=value["data_queries"], loc=thelocale)
+        crs = value["crs"]
+        output_formats = value["output_formats"]
+        parameter_names = value["parameter_names"]
+        thecollection = Collection(
+            description=description, keywords=keywords,
+            id=id, title=title, extent=extent,
+            links=thelinks, data_queries=data_queries,
+            crs=crs, output_formats=output_formats,
+            parameter_names=parameter_names)
+        return thecollection
+
+    def _form_spatial_extent(self, value) -> Union[ExtentSpatial, None]:
+        try:
+            bbox = self._parse_spatial_extent_bbox(value)
+            crs = self._parse_spatial_extent_crs(value)
+            if crs is None:
+                spatial = ExtentSpatial(bbox=bbox)
+            else:
+                spatial = ExtentSpatial(bbox=bbox, crs=crs)
+            return spatial
+        except:
+            return None
+
+    def _parse_spatial_extent_bbox(self, value) -> Union[list, None]:
+        try:
+            return value["extents"]["spatial"]["bbox"]
+        except:
+            return None
+
+    def _parse_spatial_extent_crs(self, value) -> Union[str, None]:
+        try:
+            return value["extents"]["spatial"]["crs"]
+        except:
+            return None
+
+    def _form_temporal_extent(self, value) -> Union[ExtentTemporal, None]:
+        try:
+            intervals = self._parse_temporal_extent_intervals(value)
+            if intervals is None:
+                return None
+            trs = self._parse_temporal_extent_trs(value)
+            if trs is None:
+                temporal = ExtentTemporal(interval=intervals)
+            else:
+                temporal = ExtentTemporal(
+                    interval=intervals, trs=trs)
+            return temporal
+        except:
+            return None
+
+    def _parse_temporal_extent_intervals(self, value) -> Union[list, None]:
+        try:
+            tlist = list()
+            begin = self._parse_temporal_extent_point(value, "begin")
+            tlist.append(begin)
+            end = self._parse_temporal_extent_point(value, "end")
+            tlist.append(end)
+            if (
+                    begin is None
+                    and end is None):
+                return None
+            intervals = list()
+            intervals.append(tlist)
+            return intervals
+        except:
+            return None
+
+    def _parse_temporal_extent_point(
+            self, value, position: str) -> Union[datetime, None]:
+        try:
+            pval = value["extents"]["temporal"][position]
+            return pval
+        except:
+            return None
+
+    def _parse_temporal_extent_trs(self, value) -> Union[str, None]:
+        try:
+            return value["extents"]["temporal"]["trs"]
+        except:
+            return None
+
+    def _form_vertical_extent(self, value) -> Union[ExtentVertical, None]:
+        try:
+            intervals = self._parse_vertical_extent_intervals(value)
+            print(len(intervals))
+            if intervals is None:
+                return None
+            vrs = self._parse_vertical_extent_vrs(value)
+            if vrs is None:
+                vertical = ExtentVertical(interval=intervals)
+            else:
+                vertical = ExtentVertical(
+                    interval=intervals, vrs=vrs)
+            vertical = ExtentVertical()
+            return vertical
+        except:
+            return None
+
+    def _parse_vertical_extent_intervals(self, value) -> Union[list, None]:
+        try:
+            tlist = list()
+            low = self._parse_vertical_extent_point(value, "low")
+            tlist.append(low)
+            high = self._parse_vertical_extent_point(value, "high")
+            tlist.append(high)
+            if (
+                    low is None
+                    and high is None):
+                return None
+            intervals = list()
+            intervals.append(tlist)
+            return intervals
+        except:
+            return None
+
+    def _parse_vertical_extent_point(
+            self, value, position: str) -> Union[float, None]:
+        try:
+            pval = value["extents"]["vertical"][position]
+            return pval
+        except:
+            return None
+
+    def _parse_vertical_extent_vrs(self, value) -> Union[str, None]:
+        try:
+            return value["extents"]["vertical"]["vrs"]
+        except:
+            return None
+
+    def _form_collection_links(self, collection_id, value, r_media_type):
+        thelinks = []
+        for lk in value["links"]:
+            thelink = collectionLink(
+                rel=lk["rel"],
+                type=lk["type"],
+                title=lk["title"],
+                href=lk["href"]
+            )
+            if "hreflang" in lk:
+                thelink.hreflang = lk["hreflang"]
+            thelinks.append(thelink)
+        # json
+        thelink = collectionLink(
+            type="application/json",
+            rel="alternate",
+            title='This document as JSON',
+            href='{}/collections/{}?f={}'.format(
+                self.config.config['server']['url'], collection_id, "json")
+        )
+        if (
+            r_media_type is None
+            or r_media_type == "application/json"
+        ):
+            thelink.rel = "self"
+        thelinks.append(thelink)
+        # html
+        thelink = collectionLink(
+            type="text/html",
+            rel="alternate",
+            title='This document as HTML',
+            href='{}/collections/{}?f={}'.format(
+                self.config.config['server']['url'], collection_id, "html")
+        )
+        if (
+            r_media_type == "text/html"
+        ):
+            thelink.rel = "self"
+        thelinks.append(thelink)
+        return thelinks
+
+    def _negotiate_content_best_match(self, request: web.Request,
+                                      the_formats: Union[list, None]):
+        # get the best_match
+        response_formats = self.config.get_response_formats("/")
+        header_accept = ",".join(request.headers.getall('ACCEPT', '*/*'))
+        best_match = None
+        print("header_accept=", header_accept)
+        print("the_formats=", the_formats)
+
+        if the_formats is not None:
+            best_match = self.config.get_mimetype_best_match(
+                response_formats, ",".join(the_formats))
+        if best_match is None:
+            best_match = self.config.get_mimetype_best_match(
+                response_formats, header_accept)
+        return best_match
+
+    def get_full_media_type_from_f_param(self, f_formats: list):
+        if f_formats is None:
+            return None
+        ret_formats = []
+        for f in f_formats:
+            the_f = self._get_full_media_type_from_f_param(f)
+            ret_formats.append(the_f)
+        return ret_formats
+
+    def _get_full_media_type_from_f_param(self, f_format):
+        ret_format = f_format
+        if f_format.lower() == 'json':
+            ret_format = 'application/json'
+        elif f_format.lower() == 'html':
+            ret_format = 'text/html'
+        return ret_format
+
+    def _format_content_collection(
+            self, lp: Collections, mediatype: str, loc="en_US"):
+        theplugin = self.config.pluginmanager.get_plugin_by_category_media_type(
+            "formatter", "collection", mediatype)
+        print("theplugin-name=", theplugin.name)
+        thewriter = theplugin.cls({})
+        return thewriter.write(
+            options={
+                "config": self.config.get_config(),
+                "openapi": self.config.load_openapi_file(),
+                "locale": loc
+            },
+            data=lp.to_dict())
+
+    def _form_collection_data_queries(
+            self, dataqueries: Union[dict, None],
+            loc="en_US"):
+        position = self._form_collection_data_query(
+            dataqueries, "position", loc
+        )
+        radius = self._form_collection_data_query(
+            dataqueries, "radius", loc
+        )
+        area = self._form_collection_data_query(
+            dataqueries, "area", loc
+        )
+        cube = self._form_collection_data_query(
+            dataqueries, "cube", loc
+        )
+        trajectory = self._form_collection_data_query(
+            dataqueries, "trajectory", loc
+        )
+        corridor = self._form_collection_data_query(
+            dataqueries, "corridor", loc
+        )
+        items = self._form_collection_data_query(
+            dataqueries, "items", loc
+        )
+        locations = self._form_collection_data_query(
+            dataqueries, "locations", loc
+        )
+        dqs = CollectionDataQueries(
+            position=position, radius=radius,
+            area=area, cube=cube,
+            trajectory=trajectory, corridor=corridor,
+            items=items, locations=locations
+        )
+        return dqs
+
+    def _form_collection_data_query(
+        self, dataqueries: Union[dict, None],
+        querytype: str,
+        loc="en_US"
+    ):
+        dq = dataqueries.get(querytype, None)
+        if dq is None:
+            return dq
+        dqp = CollectionDataQueriesPosition()
+        dqlink = collectionLink.from_dict(dq.get("link"))
+        dqp.link = dqlink
+        return dq

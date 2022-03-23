@@ -1,0 +1,177 @@
+{% extends "jj2_base.html" %}
+{% block title %}{{ super() }} {{ data['title'] }} {% endblock %}
+{% block crumbs %}{{ super() }}
+/ <a href="../collections">{% trans %}Collections{% endtrans %}</a>
+/ <a href="./{{ data['id'] }}">{{ data['title'] | truncate( 25 ) }}</a>
+{% endblock %}
+
+{% block extrahead %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+{% endblock %}
+
+{% block body %}
+    <section id="collection">
+      <div class="row">
+        <div class="col-sm">
+          <h1>{{ data['title'] }}</h1>
+          <p>{{ data['description'] }}</p>
+          <p>
+            {% for kw in data['keywords'] %}
+              <mark class="tag">{{ kw }}</mark>
+            {% endfor %}
+          </p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-12">
+          <div id="collection-map"></div>
+        </div>
+      </div>
+      {% if data['itemType'] == 'feature' or data['itemType'] == 'record' %}
+      <h3>{% trans %}Browse{% endtrans %}</h3>
+      <ul>
+        <li>
+          <div>
+            <a title="{% trans %}Browse Items{% endtrans %}" href="{{ config['server']['url'] }}/collections/{{ data['id'] }}/items">
+              {% trans %}Browse through the items of{% endtrans %} "{{ data['title'] }}"</a></div>
+        </li>
+      </ul>
+      <h3>{% trans %}Queryables{% endtrans %}</h3>
+      <ul>
+        <li>
+          <div>
+            <a title="{% trans %}Display Queryables{% endtrans %}" href="{{ config['server']['url'] }}/collections/{{ data['id'] }}/queryables">
+              {% trans %}Display Queryables of{% endtrans %} "{{ data['title'] }}"</a></div>
+        </li>
+      </ul>
+      {% for provider in config['resources'][data['id']]['providers'] %}
+        {% if 'tile' in provider['type'] %}
+      <h3>{% trans %}Tiles{% endtrans %}</h3>
+      <ul>
+        <li>
+          <div>
+            <a title="{% trans %}Display Tiles{% endtrans %}" href="{{ config['server']['url'] }}/collections/{{ data['id'] }}/tiles">{% trans %}Display Tiles of{% endtrans %} "{{ data['title'] }}"</a>
+          </div>
+        </li>
+      </ul>
+        {% endif %}
+      {% endfor %}
+      {% endif  %}
+      <h3>{% trans %}Links{% endtrans %}</h3>
+      <ul>
+      {% for link in data['links'] %}
+          <li>
+            <a title="{{ link['rel'] }}" href="{{ link['href'] }}">
+            <span>{{ link['title'] }}</span> (<span>{{ link['type'] }}</span>)
+            </a></li>
+      {% endfor %}
+      </ul>
+      {% if 'data_queries' in data %}
+        <h3>{% trans %}Data Queries{% endtrans %}</h3>
+        <ul>
+        {% for key, value in data["data_queries"].items() %}
+            <li>
+              {% if value['link']['href'].startswith("/") %}
+                <a title="{{ value['link']['rel'] }}" href="{{ config["server"]["url"] }}{{ value['link']['href'] }}">
+              {% else %}
+                <a title="{{ value['link']['rel'] }}" href="{{ value['link']['href'] }}">
+              {% endif %}
+              <span>{{ value['link']['variables']['title'] }}</span> (<span>{{ value['link']['variables']['query_type'] }}</span>)
+              </a>
+            </li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    </section>
+{% endblock %}
+
+{% block extrafoot %}
+<style>
+  .flat {
+      border: 0px;
+  }
+
+  header {
+      display: inline-block;
+  }
+
+  main {
+      background-color:white
+  }
+
+  .crumbs {
+      background-color:rgb(230, 230, 230);
+      padding: 6px;
+  }
+
+  .crumbs a {
+      padding: 0px 6px;
+      color:black;
+  /*    text-transform: capitalize;*/
+  }
+
+  #items-map, #collection-map {
+      width: 100%;
+      height: 400px;
+  }
+
+  /* cancel mini-css header>button uppercase */
+  header button, header [type="button"], header .button, header [role="button"] {
+      text-transform: none;
+  }
+
+  html, body {
+      background-color: #fff;
+  }
+
+  footer.sticky {
+      position: fixed;
+      width: 100%;
+  }
+
+  main {
+      padding-bottom: 65px; /* prevent from falling under the footer */
+  }
+
+  table:not(.horizontal) {
+      max-height: none;
+  }
+
+  mark.successful {
+    background-color: green;
+  }
+
+  mark.accepted {
+    background-color: default;
+  }
+
+  mark.failed {
+    background-color: red;
+  }
+
+  mark.running {
+    background-color: orange;
+  }
+
+</style>
+    <script>
+    var map = L.map('collection-map').setView([{{ 0 }}, {{ 0 }}], 1);
+    map.addLayer(new L.TileLayer(
+      '{{ config['server']['map']['url'] }}', {
+        maxZoom: 18,
+        attribution: '{{ config['server']['map']['attribution'] | safe }}'
+      }
+    ));
+
+    var bbox_layer = L.polygon([
+      ['{{ data['extent']['spatial']['bbox'][1] }}', '{{ data['extent']['spatial']['bbox'][0] }}'],
+      ['{{ data['extent']['spatial']['bbox'][3] }}', '{{ data['extent']['spatial']['bbox'][0] }}'],
+      ['{{ data['extent']['spatial']['bbox'][3] }}', '{{ data['extent']['spatial']['bbox'][2] }}'],
+      ['{{ data['extent']['spatial']['bbox'][1] }}', '{{ data['extent']['spatial']['bbox'][2] }}']
+    ]);
+
+    map.addLayer(bbox_layer);
+    map.fitBounds(bbox_layer.getBounds(), {maxZoom: 10});
+    </script>
+{% endblock %}

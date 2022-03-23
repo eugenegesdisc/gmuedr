@@ -1,0 +1,578 @@
+server:
+    bind:
+        host: 0.0.0.0
+        port: 8080
+    url: http://localhost:8080/edr
+    mimetype: application/json; charset=UTF-8
+    encoding: utf-8
+    gzip: false
+    locales:
+        # First locale is the default
+        - en_US
+        - fr_CA
+    # cors: true
+    pretty_print: true
+    limit: 10
+    # templates:
+      # path: /path/to/Jinja2/templates
+      # static: /path/to/static/folder # css/js/img
+    # openapi:
+      # yaml: /path/to/openapi/openapi.yaml
+      # json: /path/to/openapi/openapi.json
+    map:
+        url: https://tile.openstreetmap.org/{z}/{x}/{y}.png
+        attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+#    manager:
+#        name: TinyDB
+#        connection: /tmp/pygeoapi-process-manager.db
+#        output_dir: /tmp/
+    # ogc_schemas_location: /opt/schemas.opengis.net
+
+logging:
+    level: ERROR
+    #logfile: /tmp/pygeoapi.log
+
+metadata:
+    identification:
+        title:
+            - locale: en_US
+              value: gmupyedr OGC API - Environmental Data Retrieval
+            - locale: fr_CA
+              value: instance par défaut de gmupyedr
+        description:
+            - locale: en_US
+              value: |-
+                gmupyedr provides an API to geospatial data.
+                The Environmental Data Retrieval (EDR) Application Programming Interface (API) provides a family of lightweight query interfaces to access spatio-temporal data resources by requesting data at a Position, within an Area, along a Trajectory or through a Corridor. A spatio-temporal data resource is a collection of spatio-temporal data that can be sampled using the EDR query pattern geometries. These patterns are described in the section describing the Core Requirements Class. The goals of the EDR API are to make it easier to access a wide range of data through a uniform, well-defined simple Web interface, and to achieve data reduction to just the data needed by the user or client while hiding much of the data storage complexity. A major use case for the EDR API is to retrieve small subsets from large collections of environmental data, such as weather forecasts, though many other types of data can be accessed. The important aspect is that the data can be unambiguously specified by spatio-temporal coordinates.
+                The EDR API query patterns, such as Position, Area, Cube, Trajectory or Corridor, can be thought of as discrete sampling geometries, conceptually consistent with the feature of interest in the Sensor Observation Service (SOS) standard. A typical EDR data resource is a multidimensional dataset that could be accessed via an implementation of the Web Coverage Service (WCS) standard. In contrast to SOS and WCS, EDR implements the technical baseline of the OGC API family of standards and aims to provide a single set of simple-to-use query patterns. Use cases for EDR range from real or virtual time-series observation retrievals, to sub-setting 4-dimensional data cubes along user-supplied sampling geometries. These query patterns do not attempt to satisfy the full scope of either SOS or WCS, but provide useful building blocks to allow the composition of APIs that satisfy a wide range of geospatial data use cases. By defining a small set of query patterns (and no requirement to implement all of them), the EDR API should help to simplify the design of systems (as they can be performance tuned for the supported queries) making it easier to build robust and scalable infrastructure
+            - locale: fr_CA
+              value: gmupyedr fournit une API aux données géospatiales
+        keywords:
+            - locale: en_US
+              value:
+                  - geospatial
+                  - data
+                  - api
+            - locale: fr_CA
+              value:
+                  - géospatiale
+                  - données
+                  - api
+        keywords_type: theme
+        terms_of_service: https://creativecommons.org/licenses/by/4.0/
+        url: https://example.org
+    license:
+        name: CC-BY 4.0 license
+        url: https://creativecommons.org/licenses/by/4.0/
+    provider:
+        name: Organization Name
+        url: https://disc.gsfc.nasa.gov
+    contact:
+        name: Lastname, Firstname
+        position: Position Title
+        address: Mailing Address
+        city: City
+        stateorprovince: Administrative Area
+        postalcode: Zip or Postal Code
+        country: Country
+        phone: +xx-xxx-xxx-xxxx
+        fax: +xx-xxx-xxx-xxxx
+        email: you@example.org
+        url: Contact URL
+        hours: Mo-Fr 08:00-17:00
+        instructions: During hours of service. Off on weekends.
+        role: pointOfContact
+    conformto:
+        - http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core
+        - http://www.opengis.net/spec/ogcapi-edr-1/1.0/req/core
+        - http://www.opengis.net/spec/ogcapi-edr-1/1.0/req/collections
+        - http://www.opengis.net/spec/ogcapi-edr-1/1.0/req/json
+
+resources:
+    obs:
+        type: collection
+        title: Observations
+        description: My cool observations
+        keywords:
+            - observations
+            - monitoring
+        context:
+            - datetime: https://schema.org/DateTime
+            - vocab: https://example.com/vocab#
+              stn_id: "vocab:stn_id"
+              value: "vocab:value"
+        links:
+            - type: text/csv
+              rel: canonical
+              title: data
+              href: https://github.com/mapserver/mapserver/blob/branch-7-0/msautotest/wxs/data/obs.csv
+              hreflang: en-US
+            - type: text/csv
+              rel: alternate
+              title: data
+              href: https://raw.githubusercontent.com/mapserver/mapserver/branch-7-0/msautotest/wxs/data/obs.csv
+              hreflang: en-US
+        extents:
+            spatial:
+                bbox: [-180,-90,180,90]
+                crs: GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+            temporal:
+                begin: 2000-10-30T18:24:39Z
+                end: 2007-10-30T08:57:29Z
+        providers:
+            - type: feature
+              name: CSV
+              data: tests/data/obs.csv
+              id_field: id
+              geometry:
+                  x_field: long
+                  y_field: lat
+
+    lakes:
+        type: collection
+        title:
+          - locale: en_US
+            value: Large Lakes
+          - locale: fr_CA
+            value: Grands Lacs
+        description:
+          - locale: en_US
+            value: lakes of the world, public domain
+          - locale: fr_CA
+            value: lacs du monde, domaine public
+        keywords:
+          - locale: en_US
+            value:
+                - lakes
+                - water bodies
+          - locale: fr_CA
+            value:
+                - lacs
+                - plans d'eau
+        links:
+            - type: text/html
+              rel: canonical
+              title: information
+              href: http://www.naturalearthdata.com/
+              hreflang: en-US
+        extents:
+            spatial:
+                bbox: [-180,-90,180,90]
+                crs: http://www.opengis.net/def/crs/OGC/1.3/CRS84
+            temporal:
+                begin: 2011-11-11T11:11:11Z
+                end: null  # or empty (either means open ended)
+        providers:
+            - type: feature
+              name: GeoJSON
+              data: tests/data/ne_110m_lakes.geojson
+              id_field: id
+              title_field: name
+
+    gdps-temperature:
+        type: collection
+        title: Global Deterministic Prediction System sample
+        description: Global Deterministic Prediction System sample
+        keywords:
+            - gdps
+            - global
+        extents:
+            spatial:
+                bbox: [-180,-90,180,90]
+                crs: http://www.opengis.net/def/crs/OGC/1.3/CRS84
+        links:
+            - type: text/html
+              rel: canonical
+              title: information
+              href: https://eccc-msc.github.io/open-data/msc-data/nwp_gdps/readme_gdps_en
+              hreflang: en-CA
+        providers:
+            - type: coverage
+              name: rasterio
+              data: tests/data/CMC_glb_TMP_TGL_2_latlon.15x.15_2020081000_P000.grib2
+              options:
+                  DATA_ENCODING: COMPLEX_PACKING
+              format:
+                  name: GRIB
+                  mimetype: application/x-grib2
+
+    test-data:
+        type: stac-collection
+        title: pygeoapi test data
+        description: pygeoapi test data
+        keywords:
+            - poi
+            - portugal
+        links:
+            - type: text/html
+              rel: canonical
+              title: information
+              href: https://github.com/geopython/pygeoapi/tree/master/tests/data
+              hreflang: en-US
+        extents:
+            spatial:
+                bbox: [-180,-90,180,90]
+                crs: http://www.opengis.net/def/crs/OGC/1.3/CRS84
+        providers:
+            - type: stac
+              name: FileSystem
+              data: tests/data
+              file_types:
+                  - .gpkg
+                  - .sqlite
+                  - .csv
+                  - .grib2
+                  - .tif
+                  - .shp
+
+    canada-metadata:
+        type: collection
+        title:
+          - locale: en_US
+            value: Open Canada sample data
+          - locale: fr_CA
+            value: Exemple de donn\u00e9es Canada Ouvert
+        description:
+          - locale: en_US
+            value: Sample metadata records from open.canada.ca
+          - locale: fr_CA
+            value: Exemples d'enregistrements de m\u00e9tadonn\u00e9es sur ouvert.canada.ca
+        keywords:
+          - locale: en_US
+            value:
+                - canada
+                - open data
+          - locale: fr_CA
+            value:
+                - canada
+                - donn\u00e9es ouvertes
+        links:
+            - type: text/html
+              rel: canonical
+              title: information
+              href: https://open.canada.ca/en/open-data
+              hreflang: en-CA
+            - type: text/html
+              rel: alternate
+              title: informations
+              href: https://ouvert.canada.ca/fr/donnees-ouvertes
+              hreflang: fr-CA
+        extents:
+            spatial:
+                bbox: [-180,-90,180,90]
+                crs: http://www.opengis.net/def/crs/OGC/1.3/CRS84
+        providers:
+            - type: record
+              name: TinyDBCatalogue
+              data: tests/data/open.canada.ca/sample-records.tinydb
+              id_field: externalId
+              time_field: recordCreated
+              title_field: title
+
+    noaa_global_hourly_surface:
+      type: collection
+      title: 'The Integrated Surface Dataset (global, hourly)'
+      description: >-
+        The Integrated Surface Dataset (ISD) is composed of worldwide surface
+        weather observations from over 35,000 stations, though the best spatial
+        coverage is evident in North America, Europe, Australia, and parts of
+        Asia. Parameters included are: air quality, atmospheric pressure,
+        atmospheric temperature/dew point, atmospheric winds, clouds,
+        precipitation, ocean waves, tides and more. ISD refers to the data
+        contained within the digital database as well as the format in which the
+        hourly, synoptic (3-hourly), and daily weather observations are stored.
+        The format conforms to Federal Information Processing Standards (FIPS).
+        ISD provides hourly data that can be used in a wide range of
+        climatological applications. For some stations, data may go as far back as
+        1901, though most data show a substantial increase in volume in the 1940s
+        and again in the early 1970s. Currently, there are over 14,000 'active'
+        stations updated daily in the database. For user convenience, a subset of
+        just the hourly data is available to users for download. It is referred to
+        as Integrated Surface Global Hourly data, see associated download links
+        for access to this subset.
+      keywords:
+        - Integrated Surface Dataset
+        - Global
+        - NOAA
+      links:
+        - type: text/html
+          rel: canonical
+          title: information
+          href: 'https://www.ncdc.noaa.gov/isd'
+          hreflang: en-US
+      extents:
+        spatial:
+          bbox:
+            - -180
+            - -90
+            - 180
+            - 90
+          crs: 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
+        temporal:
+          interval:
+            - begin: '1972-01-01T00:00:00Z'
+              end: '1972-12-31T23:59:59Z'
+          trs: >-
+            TIMECRS["DateTime",TDATUM["Gregorian
+            Calendar"],CS[TemporalDateTime,1],AXIS["Time (T)",future]
+      data_queries:
+        position:
+          link:
+            href: '/collections/noaa_global_hourly_surface/position?coords={coords}'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Position query
+              description: Position query
+              query_type: position
+              coords:
+                description: 'Well Known Text POINT value i.e. POINT(-120, 55)'
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - IWXXM
+              default_output_format: IWXXM
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+          linkrel: relative
+        radius:
+          link:
+            href: '/collections/noaa_global_hourly_surface/radius?coords={coords}'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Radius query
+              description: Radius query
+              query_type: radius
+              coords:
+                description: 'Well Known Text POINT value i.e. POINT(-120, 55)'
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - IWXXM
+              default_output_format: GeoJSON
+              within_units:
+                - km
+                - miles
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+          linkrel: relative
+        area:
+          link:
+            href: 'http://www.example.org/edr/collections/hrly_obs/area?coords={coords}'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Area query
+              description: Area query
+              query_type: area
+              coords:
+                description: >-
+                  Well Known Text POLYGON value i.e. POLYGON((-79 40,-79 38,-75
+                  38,-75 41,-79 40))
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - BUFR
+                - IWXXM
+              default_output_format: CoverageJSON
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+        locations:
+          link:
+            href: /collections/noaa_global_hourly_surface/locations
+            hreflang: en
+            rel: data
+            templated: false
+            variables:
+              title: Location query
+              description: Location query
+              query_type: locations
+              output_formats:
+                - application%2Fgeo%2Bjson
+                - text%2Fhtml
+              default_output_format: application%2Fgeo%2Bjson
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+          linkrel: relative
+      crs:
+        - CRS84
+      output_formats:
+        - CoverageJSON
+        - GeoJSON
+        - IWXXM
+      parameter_names:
+        Wind Direction:
+          type: Parameter
+          description: ''
+          unit:
+            label: degree true
+            symbol:
+              value: °
+              type: 'http://www.example.org/edr/metadata/units/degree'
+          observedProperty:
+            id: 'http://codes.wmo.int/common/quantity-kind/_windDirection'
+            label: Wind Direction
+          measurementType:
+            method: mean
+            period: '-PT10M/PT0M'
+        Wind Speed:
+          type: Parameter
+          description: ''
+          unit:
+            label: mph
+            symbol:
+              value: mph
+              type: 'http://www.example.org/edr/metadata/units/mph'
+          observedProperty:
+            id: 'http://codes.wmo.int/common/quantity-kind/_windSpeed'
+            label: Wind Speed
+          measurementType:
+            method: mean
+            period: '-PT10M/PT0M'
+        Wind Gust:
+          type: Parameter
+          description: ''
+          unit:
+            label: mph
+            symbol:
+              value: mph
+              type: 'http://www.example.org/edr/metadata/units/mph'
+          observedProperty:
+            id: 'http://codes.wmo.int/common/quantity-kind/_maximumWindGustSpeed'
+            label: Wind Gust
+          measurementType:
+            method: maximum
+            period: '-PT10M/PT0M'
+        Air Temperature:
+          type: Parameter
+          description: ''
+          unit:
+            label: degC
+            symbol:
+              value: °C
+              type: 'http://www.example.org/edr/metadata/units/degC'
+          observedProperty:
+            id: 'http://codes.wmo.int/common/quantity-kind/_airTemperature'
+            label: Air Temperature
+          measurementType:
+            method: instantaneous
+            period: PT0M
+        Weather:
+          type: Parameter
+          description: ''
+          unit:
+            label: weather
+            symbol:
+              value: ''
+              type: 'http://www.example.org/edr/metadata/lookup/mo_dp_weather'
+          observedProperty:
+            id: 'http://codes.wmo.int/wmdr/ObservedVariableAtmosphere/_266'
+            label: Weather
+          measurementType:
+            method: instantaneous
+            period: PT0M
+        Relative Humidity:
+          type: Parameter
+          description: ''
+          unit:
+            label: percent
+            symbol:
+              value: '%'
+              type: 'http://www.example.org/edr/metadata/units/percent'
+          observedProperty:
+            id: 'http://codes.wmo.int/bufr4/b/13/_009'
+            label: Relative Humidity
+          measurementType:
+            method: instantaneous
+            period: PT0M
+        Dew point:
+          type: Parameter
+          description: ''
+          unit:
+            label: degC
+            symbol:
+              value: °C
+              type: 'http://www.example.org/edr/metadata/units/degC'
+          observedProperty:
+            id: 'http://codes.wmo.int/common/quantity-kind/_dewPointTemperature'
+            label: Dew point
+          measurementType:
+            method: instantaneous
+            period: PT0M
+        Pressure:
+          type: Parameter
+          description: ''
+          unit:
+            label: hPa
+            symbol:
+              value: hPa
+              type: 'http://www.example.org/edr/metadata/units/hPa'
+          observedProperty:
+            id: 'http://codes.wmo.int/bufr4/b/10/_051'
+            label: Pressure
+          measurementType:
+            method: instantaneous
+            period: PT0M
+        Pressure Tendancy:
+          type: Parameter
+          description: ''
+          unit:
+            label: tendency
+            symbol:
+              value: ''
+              type: 'http://www.example.org/edr/metadata/units/hPa'
+          observedProperty:
+            id: 'http://codes.wmo.int/common/quantity-kind/_pressureTendency'
+            label: Pressure Tendancy
+          measurementType:
+            method: instantaneous
+            period: PT0M
+        Visibility:
+          type: Parameter
+          description: ''
+          unit:
+            label: m
+            symbol:
+              value: m
+              type: 'http://www.example.org/edr/metadata/units/m'
+          observedProperty:
+            id: 'http://codes.wmo.int/common/quantity-kind/_horizontalVisibility'
+            label: Visibility
+          measurementType:
+            method: instantaneous
+            period: PT0M
+      providers:
+        - type: feature
+          name: PostGIS
+          data: 'postgresql://noaauser:noaa2020@localhost:5432/noaa'
+          id_field: ogc_id
+          locid_field: station
+          title_field: station
+          table: noaa_global_surface
+          geometry:
+            geom_field: the_geom
+            geom_format: ewkb
+          time_field:
+            time_format: datetime
+            datetime: date
+
+    hello-world:
+        type: process
+        processor:
+            name: HelloWorld
