@@ -37,10 +37,12 @@ class OgcApiCollectionDataByPoint(OgcApi):
             ret_format = 'text/html'
         return ret_format
 
-    def _negotiate_content_best_match(self, request: web.Request,
-                                      the_formats: Union[list, None]):
+    def _negotiate_content_best_match(
+            self, api_path: str,
+            request: web.Request,
+            the_formats: Union[list, None]):
         # get the best_match
-        response_formats = self.config.get_response_formats("/")
+        response_formats = self.config.get_response_formats(api_path)
         header_accept = ",".join(request.headers.getall('ACCEPT', '*/*'))
         best_match = None
         Logger.debug("header_accept= {}".format(header_accept))
@@ -115,11 +117,13 @@ class OgcApiCollectionDataByPoint(OgcApi):
         :type f: str
 
         """
+        api_path = "/collections/{collectionId}/position"
         qstrs = parse_qs(request.query_string)
         the_locale = qstrs.get('locale')
         the_formats = qstrs.get('f')
         the_formats = self.get_full_media_type_from_f_param(the_formats)
-        best_match = self._negotiate_content_best_match(request, the_formats)
+        best_match = self._negotiate_content_best_match(
+            api_path, request, the_formats)
 
         translator = LocaleTranslator()
         thecollection_value = translator.get_config_translated(
