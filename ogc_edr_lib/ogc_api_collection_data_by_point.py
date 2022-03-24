@@ -136,7 +136,7 @@ class OgcApiCollectionDataByPoint(OgcApi):
             the_locale)["resources"][collection_id]
         the_item_data = self._get_collection_data_by_point(
             thecollection_value, collection_id, coords, z,
-            datetime, parameter_name, crs, f)
+            datetime, parameter_name, crs, best_match)
 
         headers = CIMultiDict()
         headers["Content-Type"] = best_match
