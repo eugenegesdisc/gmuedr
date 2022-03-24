@@ -255,6 +255,8 @@ class XarrayEDRProvider(BaseProvider):
                 the_desc_o = {"en": the_desc}
             the_label = the_attrs.get("standard_name", None)
             if the_label is None:
+                the_label = the_desc
+            if the_label is None:
                 the_label_o = None
             else:
                 the_label_o = {"en": the_label}
@@ -264,10 +266,14 @@ class XarrayEDRProvider(BaseProvider):
             else:
                 the_unit_label_o = {"en": the_unit_label}
             the_symbol = the_attrs.get("units", None)
+            if the_symbol is None:
+                the_symbol_o = None
+            else:
+                the_symbol_o = {"value": the_symbol}
             the_dtype = the_var.dtype.name
             the_units = Units(
-                label=the_unit_label,
-                symbol=the_symbol)
+                label=the_unit_label_o,
+                symbol=the_symbol_o)
             the_ob_property = ObservedProperty(
                 id=the_param_name,
                 label=the_label_o,
@@ -305,15 +311,34 @@ class XarrayEDRProvider(BaseProvider):
         return None
 
     def _gen_coverage_json_grid(self, theds, theparams, theproperties):
+        if theds.coords[
+                theproperties["x_axis_label"]].ndim == 0:
+            x_values = [theds.coords[
+                theproperties["x_axis_label"]].values.tolist()]
+        else:
+            x_values = theds.coords[
+                theproperties["x_axis_label"]].values.tolist()
+        if theds.coords[
+                theproperties["y_axis_label"]].ndim == 0:
+            y_values = [theds.coords[
+                theproperties["y_axis_label"]].values.tolist()]
+        else:
+            y_values = theds.coords[
+                theproperties["y_axis_label"]].values.tolist()
+        if theds.coords[
+                theproperties["time_axis_label"]].ndim == 0:
+            t_values = [theds.coords[
+                theproperties["time_axis_label"]].values.tolist()]
+        else:
+            t_values = theds.coords[
+                theproperties["time_axis_label"]].values.tolist()
         theaxes = {
-            "x": {"values": theds.coords[
-                theproperties["x_axis_label"]].values.tolist()},
-            "y": {"values": theds.coords[
-                theproperties["x_axis_label"]].values.tolist()},
+            "x": {"values": x_values},
+            "y": {"values": y_values},
             "t": {"values": self._convert_time_array_to_strings(
-                theds.coords[
-                    theproperties["time_axis_label"]].values.tolist())},
-            "referencing": [
+                t_values)}
+        }
+        thereferencing = [
                 {
                     "coordinates": self._replace_variable_coordinates(
                         theproperties),
@@ -322,18 +347,18 @@ class XarrayEDRProvider(BaseProvider):
                         "id": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
                     }
                 }, {
-                    "ccordinates": ["t"],
+                    "coordinates": ["t"],
                     "system": {
                         "type": "TemporalRS",
                         "calendar": "Gregorian"
                     }
                 }
             ]
-        }
         thedomaindesc = DomainDescription(
             type="Domain",
-            domain_type="Gird",
-            axes=theaxes
+            domain_type="Grid",
+            axes=theaxes,
+            referencing=thereferencing
         )
         the_param_descriptions = self._get_parameter_descriptions(
             theds, theparams, theproperties)
@@ -547,10 +572,10 @@ class XarrayEDRProvider(BaseProvider):
 
     def _gen_coverage_json_point(self, theds, theparams, theproperties):
         theaxes = {
-            "x": {"values": theds.coords[
-                theproperties["x_axis_label"]].values.tolist()},
-            "y": {"values": theds.coords[
-                theproperties["x_axis_label"]].values.tolist()},
+            "x": {"values": [theds.coords[
+                theproperties["x_axis_label"]].values.tolist()]},
+            "y": {"values": [theds.coords[
+                theproperties["y_axis_label"]].values.tolist()]},
             "t": {"values": self._convert_time_array_to_strings(
                 theds.coords[
                     theproperties["time_axis_label"]].values.tolist())}

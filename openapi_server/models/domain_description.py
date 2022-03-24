@@ -15,7 +15,7 @@ class DomainDescription(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, type: object = None, domain_type: object = None, axes: AnyOfobjectobject = None):
+    def __init__(self, type: object = None, domain_type: object = None, axes: AnyOfobjectobject = None, referencing: AnyOfobjectobject = None):
         """DomainDescription - a model defined in OpenAPI
 
         :param type: The type of this DomainDescription.
@@ -25,18 +25,21 @@ class DomainDescription(Model):
         self.openapi_types = {
             'type': object,
             'domain_type': object,
-            'axes': AnyOfobjectobject
+            'axes': AnyOfobjectobject,
+            'referencing': AnyOfobjectobject
         }
 
         self.attribute_map = {
             'type': 'type',
             'domain_type': 'domainType',
-            'axes': 'axes'
+            'axes': 'axes',
+            'referencing': "referencing"
         }
 
         self._type = type
         self._domain_type = domain_type
         self._axes = axes
+        self._referencing = referencing
 
     @classmethod
     def from_dict(cls, dikt: dict) -> 'DomainDescription':
@@ -129,3 +132,27 @@ class DomainDescription(Model):
             raise ValueError("Invalid value for `axes`, must not be `None`")
 
         self._axes = axes
+
+    @property
+    def referencing(self):
+        """Gets the referencing of this CoverageJSON.
+
+
+        :return: The referencing of this CoverageJSON.
+        :rtype: Dict[str, OneOfobjectobject]
+        """
+        return self._referencing
+
+    @referencing.setter
+    def referencing(self, referencing):
+        """Sets the referencing of this CoverageJSON.
+
+
+        :param referencing: The referencing of this CoverageJSON.
+        :type referencing: Dict[str, OneOfobjectobject]
+        """
+        if referencing is None:
+            raise ValueError(
+                "Invalid value for `referencing`, must not be `None`")
+
+        self._referencing = referencing
