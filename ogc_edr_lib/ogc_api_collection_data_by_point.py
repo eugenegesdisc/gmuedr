@@ -35,6 +35,12 @@ class OgcApiCollectionDataByPoint(OgcApi):
             ret_format = 'application/json'
         elif f_format.lower() == 'html':
             ret_format = 'text/html'
+        elif f_format.lower() == 'coveragejson':
+            ret_format = 'application/prs.coverage+json'
+        elif f_format.lower() == 'geojson':
+            ret_format = 'application/geo+json'
+        elif f_format.lower() == 'netcdf':
+            ret_format = 'application/x-netcdf'
         return ret_format
 
     def _negotiate_content_best_match(
