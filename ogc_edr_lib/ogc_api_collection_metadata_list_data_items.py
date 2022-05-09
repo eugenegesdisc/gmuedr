@@ -78,12 +78,13 @@ class OgcApiCollectionMetadataListDataItems(OgcApi):
         the_formats = self.get_full_media_type_from_f_param(the_formats)
         best_match = self._negotiate_content_best_match(request, the_formats)
 
+        the_offset = qstrs.get('offset')
         translator = LocaleTranslator()
         thecollection_value = translator.get_config_translated(
             the_locale)["resources"][collection_id]
         thecollection_data = self._get_collection_items(
             collection_id, thecollection_value,
-            bbox, datetime, limit,
+            bbox, datetime, limit, the_offset,
             best_match)
 
 #        retcontent = self._get_collection_items(
@@ -97,7 +98,7 @@ class OgcApiCollectionMetadataListDataItems(OgcApi):
     def _get_collection_items(
         self, key, value: dict,
         bbox=None,
-        datetime=None, limit=None,
+        datetime=None, limit=None, offset=None,
         r_media_type="en_US"
     ):
         """
@@ -118,7 +119,7 @@ class OgcApiCollectionMetadataListDataItems(OgcApi):
                     theprovider_def.get("name"))
             theprovider = theplugin.cls(theprovider_def)
             thedata = theprovider.query_items(
-                key, bbox, datetime, limit
+                key, bbox, datetime, limit, offset
             )
             # type: str=None,
             # features: List[FeatureGeoJSON]=None,

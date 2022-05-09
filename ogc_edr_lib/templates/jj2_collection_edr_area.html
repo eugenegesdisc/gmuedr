@@ -1,7 +1,7 @@
 {% extends "jj2_base.html" %}
+{% block title %}{{ super() }} Area Query for {{ data['title'] }} {% endblock %}
 {#
 <!--
-{% block title %}{{ super() }} {{ data['title'] }} {% endblock %}
 {% block crumbs %}{{ super() }}
 / <a href="../collections">{% trans %}Collections{% endtrans %}</a>
 / <a href="./{{ data['id'] }}">{{ data['title'] | truncate( 25 ) }}</a>
@@ -9,180 +9,2500 @@
 -->
 #}
 {% block extrahead %}
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+
+    <link rel="stylesheet" type="text/css" href="http://labs.metoffice.gov.uk/edr/static/css/stackoverflow-dark.css">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css">
+    <link rel="stylesheet" type="text/css"
+        href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/leaflet-coverage@0.9.1/leaflet-coverage.css">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.11/c3.min.css">
+    <link rel="stylesheet" type="text/css" href="http://labs.metoffice.gov.uk/edr/static/css/client.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.8.0/d3.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.6.12/c3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.6.2/proj4.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4leaflet/1.0.2/proj4leaflet.min.js"></script>
+
+    <script src="http://labs.metoffice.gov.uk/edr/static/js/covutils.src.js"></script>
+    <script src="http://labs.metoffice.gov.uk/edr/static/js/leaflet-coverage.src.js"></script>
+    <script src="http://labs.metoffice.gov.uk/edr/static/js/leaflet-singleclick.js"></script>
+    <script>
+      base_server_url = "{{ config['server']['url'] }}";
+      // default_query_collection_id = "imerggdl_20220301"
+      default_query_collection_id = '{{ data["parameters"]["collection_id"]}}';
+      default_query_type = "area";
+    </script>
+    <!--
+    src="http://labs.metoffice.gov.uk/edr/static/js/pointquery.js"
+      -->
+    <script type="text/javascript">
+      function getPointQuery() {
+        document.getElementById("loading_wheel").style.cssText = "display:inline;left:50%;top:50%;width:35px;height:35px;z-index:10000;position:absolute;";
+        removeLayers();
+
+        let query_url = "";
+        if (document.getElementById("instlist") == undefined) {
+            query_url = getQueryHref(collectionJSON.collections[document.getElementById('collist').selectedIndex].data_queries[document.getElementById('qlist').value])
+        } else {
+            query_url = getQueryHref(instJSON.instances[document.getElementById('instlist').selectedIndex].data_queries[document.getElementById('qlist').value])
+        }
+
+
+        let valid_url = true;
+        if ((document.getElementById('coords') !== null) && (document.getElementById('coords').value.length > 0)) {
+            query_url += '?coords=' + document.getElementById('coords').value;
+        } else {
+            alert("Please select a location (click marker icon on left handside of the map then click on your required location to generate the coordinates)");
+            valid_url = false;
+        }
+
+        if (document.getElementById('qlist').value == 'radius') {
+            query_url += '&within=' + document.getElementById('rval').value + '&within-units=' + document.getElementById('rinfo').value;
+        }
+
+
+
+        let paramOpts = document.getElementsByName("parameter-name");
+        let parameter_name = "";
+        let delim = "";
+        for (let p of paramOpts) {
+            if (p.checked == true) {
+                parameter_name += delim + p.id;
+                delim = ",";
+            }
+        }
+        if (parameter_name.length  > 0) {
+            query_url += "&parameter-name=" + parameter_name;
+        }
+
+        if (document.getElementById('starttime') !== null) {
+            if (new Date(document.getElementById('starttime').value) > new Date(document.getElementById('endtime').value)) {
+                alert("End date must be greater or equal to the Start date of the query");
+                valid_url = false;
+            } else if (document.getElementById('starttime').value == document.getElementById('endtime').value) {
+                query_url += "&datetime=" + document.getElementById('starttime').value;
+            } else {
+                query_url += "&datetime=" + document.getElementById('starttime').value + "/" + document.getElementById('endtime').value;
+            }
+        }
+        if (document.getElementById('z-coord') !== null) {
+            query_url += "&z=" + document.getElementById('z-coord').value;
+        }
+
+        if (document.getElementById('crs').value.length > 0) {
+            query_url += "&crs=" + document.getElementById('crs').item(document.getElementById('crs').selectedIndex).innerText;
+        }
+
+        if (document.getElementById('outputformat').value.length > 0) {
+
+            query_url += "&f=" + document.getElementById('outputformat').value;
+        }
+
+        heightInfo = document.querySelectorAll("[id*=vrt]");
+        if (heightInfo.length > 0) {
+            let zvals = "";
+            let mxval = -99999;
+            let mnval = 999999;
+            let v_range = false;
+            let delim = "";
+            for (indx=0; indx < heightInfo.length;indx++) {
+                val = heightInfo[indx];
+                let parts = val.id.split("-");
+                if (parts[1] == "mm") {
+                    if (val.checked) {
+                        v_range = true;
+                    }
+                }
+                else {
+
+                    if (val.checked) {
+                        let v_num = Number(parts[1]);
+                        if (v_num < mnval) {
+                            mnval = v_num;
+                        }
+                        if (v_num > mxval) {
+                            mxval = v_num;
+                        }
+                        zvals += delim + parts[1];
+                        delim = ","
+                    }
+                }
+            }
+            if (v_range) {
+                zvals = String(mnval) + "/" + String(mxval);
+            }
+            query_url += "&z=" + zvals;
+        }
+
+        if (base_server_url){
+          query_url = base_server_url+query_url;
+        }
+        document.getElementById("qurl").value = query_url;
+        displayRequest(query_url);
+        if (valid_url) {
+            if (document.getElementById('outputformat').value.toLowerCase() == "coveragejson") {
+                //renderPointCovJSON();
+                get_coveragejson_data(query_url);
+            }
+            else if (document.getElementById('outputformat').value.toLowerCase() == "geojson") {
+                renderGeoJSON();
+            } else {
+                renderOther();
+            }
+        }
+        else {
+            document.getElementById("loading_wheel").style.cssText = "display:none;";
+        }
+
+      }
+    </script>
+    <!--
+    src="http://labs.metoffice.gov.uk/edr/static/js/polygonquery.js"
+      -->
+    <script type="text/javascript">
+      function getPolygonQuery() {
+
+          removeLayers();
+          document.getElementById("loading_wheel").style.cssText = "display:inline;left:50%;top:50%;width:35px;height:35px;z-index:10000;position:absolute;";
+
+          let query_url = "";
+          if (document.getElementById("instlist") == undefined) {
+              query_url = getQueryHref(collectionJSON.collections[document.getElementById('collist').selectedIndex].data_queries[document.getElementById('qlist').value])
+          } else {
+              query_url = getQueryHref(instJSON.instances[document.getElementById('instlist').selectedIndex].data_queries[document.getElementById('qlist').value])
+          }
+
+
+          let valid_url = true;
+          if ((document.getElementById('coords')!== null) && (document.getElementById('coords').value.length > 0)) {
+              query_url +='?coords=' + document.getElementById('coords').value;
+          } else {
+              alert ("Please define the area (click polygon icon on left handside of the map then click on your required vertices to generate the coordinates)");
+              valid_url = false;
+          }
+          let paramOpts = document.getElementsByName("parameter-name");
+          let parameter_name = "";
+          let delim = "";
+          for (let p of paramOpts) {
+              if (p.checked == true)
+              {
+                  parameter_name += delim + p.id;
+                  delim = ",";
+              }
+          }
+
+          if (parameter_name.length  > 0) {
+              query_url += "&parameter-name=" + parameter_name;
+          }
+
+          if (document.getElementById('starttime') !== null) {
+              if (new Date(document.getElementById('starttime').value) > new Date(document.getElementById('endtime').value)) {
+                  alert("End date must be greater or equal to the Start date of the query");
+                  valid_url = false;
+              } else if (new Date(document.getElementById('starttime').value) == new Date(document.getElementById('endtime').value)) {
+                  query_url += "&datetime=" + document.getElementById('starttime').value;
+              } else {
+                  query_url += "&datetime=" + document.getElementById('starttime').value + "/" + document.getElementById('endtime').value;
+              }
+          }
+          heightInfo = document.querySelectorAll("[id*=vrt]");
+          if (heightInfo.length > 0) {
+              let zvals = "";
+              let mxval = -99999;
+              let mnval = 999999;
+              let v_range = false;
+              let delim = "";
+              for (indx=0; indx < heightInfo.length;indx++) {
+                  val = heightInfo[indx];
+                  let parts = val.id.split("-");
+                  if (parts[1] == "mm") {
+                      if (val.checked) {
+                          v_range = true;
+                      }
+                  }
+                  else {
+
+                      if (val.checked) {
+                           let v_num = Number(parts[1]);
+                           if (v_num < mnval) {
+                               mnval = v_num;
+                           }
+                           if (v_num > mxval) {
+                               mxval = v_num;
+                           }
+                           zvals += delim + parts[1];
+                           delim = ","
+                      }
+                  }
+              }
+              if (v_range) {
+                  zvals = String(mnval) + "/" + String(mxval);
+              }
+              query_url += "&z=" + zvals;
+          }
+
+          if (document.getElementById('crs').value.length > 0) {
+              query_url += "&crs=" +  document.getElementById('crs').item(document.getElementById('crs').selectedIndex).innerText;
+          }
+
+          if (document.getElementById('outputformat').value.length > 0) {
+              query_url += "&f=" +  document.getElementById('outputformat').value;
+          }
+
+          if (base_server_url){
+            query_url = base_server_url+query_url;
+          }
+          document.getElementById("qurl").value = query_url;
+          displayRequest(query_url);
+          if (document.getElementById('outputformat').value.toLowerCase() == "coveragejson") {
+              if (valid_url) {
+                  get_coveragejson_data(query_url);
+
+                  } else {
+                  renderOther();
+              }
+
+          }
+          else if (document.getElementById('outputformat').value.toLowerCase() == "geojson") {
+              renderGeoJSON();
+          } else {
+              renderOther();
+
+          }
+      }
+    </script>
+    <!--
+    src="http://labs.metoffice.gov.uk/edr/static/js/cubequery.js"
+      -->
+    <script type="text/javascript">
+      function getCubeQuery() {
+
+          removeLayers();
+          document.getElementById("loading_wheel").style.cssText = "display:inline;left:50%;top:50%;width:35px;height:35px;z-index:10000;position:absolute;";
+
+          let query_url = "";
+          if (document.getElementById("instlist") == undefined) {
+              query_url = getQueryHref(collectionJSON.collections[document.getElementById('collist').selectedIndex].data_queries[document.getElementById('qlist').value])
+          } else {
+              query_url = getQueryHref(instJSON.instances[document.getElementById('instlist').selectedIndex].data_queries[document.getElementById('qlist').value])
+          }
+
+          let valid_url = true;
+          if ((document.getElementById('coords')!== null) && (document.getElementById('coords').value.length > 0)) {
+              query_url +='?' + document.getElementById('coords').value;
+          } else {
+              alert ("Please define the area (click rectangle icon on left handside of the map then drag an area of the map to select your coordinates)");
+              valid_url = false;
+          }
+          let paramOpts = document.getElementsByName("parameter-name");
+          let parameter_name = "";
+          let delim = "";
+          for (let p of paramOpts) {
+              if (p.checked == true)
+              {
+                  parameter_name += delim + p.id;
+                  delim = ",";
+              }
+          }
+
+          if (parameter_name.length  > 0) {
+              query_url += "&parameter-name=" + parameter_name;
+          }
+
+          if (document.getElementById('starttime') !== null) {
+              if (new Date(document.getElementById('starttime').value) > new Date(document.getElementById('endtime').value)) {
+                  alert("End date must be greater or equal to the Start date of the query");
+                  valid_url = false;
+              } else if (new Date(document.getElementById('starttime').value) == new Date(document.getElementById('endtime').value)) {
+                  query_url += "&datetime=" + document.getElementById('starttime').value;
+              } else {
+                  query_url += "&datetime=" + document.getElementById('starttime').value + "/" + document.getElementById('endtime').value;
+              }
+          }
+          heightInfo = document.querySelectorAll("[id*=vrt]");
+          if (heightInfo.length > 0) {
+              let zvals = "";
+              let mxval = -99999;
+              let mnval = 999999;
+              let v_range = false;
+              let delim = "";
+              for (indx=0; indx < heightInfo.length;indx++) {
+                  val = heightInfo[indx];
+                  let parts = val.id.split("-");
+                  if (parts[1] == "mm") {
+                      if (val.checked) {
+                          v_range = true;
+                      }
+                  }
+                  else {
+
+                      if (val.checked) {
+                           let v_num = Number(parts[1]);
+                           if (v_num < mnval) {
+                               mnval = v_num;
+                           }
+                           if (v_num > mxval) {
+                               mxval = v_num;
+                           }
+                           zvals += delim + parts[1];
+                           delim = ","
+                      }
+                  }
+              }
+              if (v_range) {
+                  zvals = String(mnval) + "/" + String(mxval);
+              }
+              query_url += "&z=" + zvals;
+          }
+
+          if (document.getElementById('crs').value.length > 0) {
+              query_url += "&crs=" +  document.getElementById('crs').item(document.getElementById('crs').selectedIndex).innerText;
+          }
+
+          if (document.getElementById('outputformat').value.length > 0) {
+              query_url += "&f=" +  document.getElementById('outputformat').value;
+          }
+
+          if (base_server_url){
+            query_url = base_server_url+query_url;
+          }
+          document.getElementById("qurl").value = query_url;
+          displayRequest(query_url);
+          if (document.getElementById('outputformat').value.toLowerCase() == "coveragejson") {
+              if (valid_url) {
+                  get_coveragejson_data(query_url);
+
+                  } else {
+                  renderOther();
+              }
+
+          }
+          else if (document.getElementById('outputformat').value.toLowerCase() == "geojson") {
+              renderGeoJSON();
+          } else {
+              renderOther();
+
+          }
+      }
+    </script>
+    <!--
+      src="http://labs.metoffice.gov.uk/edr/static/js/linequery.js"
+      -->
+    <script type="text/javascript">
+      function getTrajectoryQuery() {
+
+          removeLayers();
+          document.getElementById("loading_wheel").style.cssText = "display:inline;left:50%;top:50%;width:35px;height:35px;z-index:10000;position:absolute;";
+
+          let query_url = "";
+          if (document.getElementById("instlist") == undefined) {
+              query_url = getQueryHref(collectionJSON.collections[document.getElementById('collist').selectedIndex].data_queries[document.getElementById('qlist').value])
+          } else {
+              query_url = getQueryHref(instJSON.instances[document.getElementById('instlist').selectedIndex].data_queries[document.getElementById('qlist').value])
+          }
+
+
+          let valid_url = true;
+          if ((document.getElementById('coords')!== null) && (document.getElementById('coords').value.length > 0)) {
+              query_url +='?coords=' + document.getElementById('coords').value;
+          } else {
+              alert ("Please define the trajectory (click trajectory icon on left handside of the map then click on your required vertices to generate the coordinates)");
+              valid_url = false;
+          }
+          let paramOpts = document.getElementsByName("parameter-name");
+          let parameter_name = "";
+          let delim = "";
+          for (let p of paramOpts) {
+              if (p.checked == true)
+              {
+                  parameter_name += delim + p.id;
+                  delim = ",";
+              }
+          }
+
+          if (parameter_name.length  > 0) {
+              query_url += "&parameter-name=" + parameter_name;
+          }
+
+          if  (document.getElementById('coords').value.indexOf("M") == -1) {
+              if (document.getElementById('starttime') !== null) {
+                  if (new Date(document.getElementById('starttime').value) > new Date(document.getElementById('endtime').value)) {
+                      alert("End date must be greater or equal to the Start date of the query");
+                      valid_url = false;
+                  } else if (new Date(document.getElementById('starttime').value) == new Date(document.getElementById('endtime').value)) {
+                      query_url += "&datetime=" + document.getElementById('starttime').value;
+                  } else {
+                      query_url += "&datetime=" + document.getElementById('starttime').value + "/" + document.getElementById('endtime').value;
+                  }
+              }
+          }
+          if (document.getElementById('coords').value.indexOf("Z") == -1) {
+              heightInfo = document.querySelectorAll("[id*=vrt]");
+              if (heightInfo.length > 0) {
+                  let zvals = "";
+                  let mxval = -99999;
+                  let mnval = 999999;
+                  let v_range = false;
+                  let delim = "";
+                  for (indx=0; indx < heightInfo.length;indx++) {
+                      val = heightInfo[indx];
+                      let parts = val.id.split("-");
+                      if (parts[1] == "mm") {
+                          if (val.checked) {
+                              v_range = true;
+                          }
+                      }
+                      else {
+
+                          if (val.checked) {
+                              let v_num = Number(parts[1]);
+                              if (v_num < mnval) {
+                                  mnval = v_num;
+                              }
+                              if (v_num > mxval) {
+                                  mxval = v_num;
+                              }
+                              zvals += delim + parts[1];
+                              delim = ","
+                          }
+                      }
+                  }
+                  if (v_range) {
+                      zvals = String(mnval) + "/" + String(mxval);
+                  }
+                  query_url += "&z=" + zvals;
+              }
+          }
+
+          if (document.getElementById('crs').value.length > 0) {
+              query_url += "&crs=" +  document.getElementById('crs').item(document.getElementById('crs').selectedIndex).innerText;
+          }
+
+          if (document.getElementById('outputformat').value.length > 0) {
+              query_url += "&f=" +  document.getElementById('outputformat').value;
+          }
+
+          if (base_server_url){
+            query_url = base_server_url+query_url;
+          }
+          document.getElementById("qurl").value = query_url;
+          displayRequest(query_url);
+          if (document.getElementById('outputformat').value.toLowerCase() == "coveragejson") {
+              if (valid_url) {
+                  get_coveragejson_data(query_url);
+
+                  } else {
+                  renderOther();
+              }
+
+          }
+          else if (document.getElementById('outputformat').value.toLowerCase() == "geojson") {
+              renderGeoJSON();
+          } else {
+              renderOther();
+
+          }
+      }
+    </script>
+    <!--
+    src="http://labs.metoffice.gov.uk/edr/static/js/itemsquery.js"
+      -->
+    <script type="text/javascript">
+      function getItemsQuery() {
+          document.getElementById("loading_wheel").style.cssText = "display:inline;left:50%;top:50%;width:35px;height:35px;z-index:10000;position:absolute;";
+          removeLayers();
+
+          let query_url = "";
+          if (document.getElementById("instlist") == undefined) {
+              query_url = getQueryHref(collectionJSON.collections[document.getElementById('collist').selectedIndex].data_queries[document.getElementById('qlist').value])
+          } else {
+              query_url = getQueryHref(instJSON.instances[document.getElementById('instlist').selectedIndex].data_queries[document.getElementById('qlist').value])
+          }
+
+
+          query_url += '?'
+          let valid_url = true;
+          if ((document.getElementById('coords')!== null) && (document.getElementById('coords').value.length > 0)) {
+              query_url += document.getElementById('coords').value;
+          }
+
+          if (document.getElementById('starttime') !== null) {
+              if (new Date(document.getElementById('starttime').value) > new Date(document.getElementById('endtime').value)) {
+                  alert("End date must be greater or equal to the Start date of the query");
+                  valid_url = false;
+              } else if (document.getElementById('starttime').value == document.getElementById('endtime').value) {
+                  query_url += "&datetime=" + document.getElementById('starttime').value;
+              } else {
+                  query_url += "&datetime=" + document.getElementById('starttime').value + "/" + document.getElementById('endtime').value;
+              }
+          }
+
+          query_url += "&limit=" + document.getElementById('limit').value;
+          query_url += "&start=" + document.getElementById('start').value;
+
+
+          if (base_server_url) {
+            query_url = base_server_url+query_url;
+          }
+          document.getElementById("qurl").value = query_url;
+          displayRequest(query_url);
+          if (valid_url) {
+              display_items();
+          }
+          else {
+              document.getElementById("loading_wheel").style.cssText = "display:none;";
+          }
+
+
+      }
+
+      var itemstart=0;
+
+      function display_items() {
+          dataurl = document.getElementById("qurl").value;
+          if (document.getElementById("nextitems") != undefined) {
+              dataurl = document.getElementById("nextitems").value.replace("start="+itemstart,"start="+(itemstart+document.getElementById('limit').value));
+              itemstart = parseInt(itemstart)+parseInt(document.getElementById('limit').value);
+          } else {
+              itemstart = document.getElementById('start').value;
+              mapVisStyle = document.getElementById("map").style.cssText;
+          }
+
+          fetch(dataurl)
+                .then(function (response) {
+                    return response.json()
+                }).then(function (output) {
+                  html = '';
+                  document.getElementById("sheader").innerHTML = 'Items [Number returned: '+output["numberReturned"]+', display from: '+itemstart+', total matches: '+output["numberMatched"]+']';
+                  html += '<div class="row">';
+                  if (output["next"] != undefined) {
+                      html += '<button class="primary" value="'+output["next"]+'" onclick="display_items()" id="nextitems" >Next '+output["numberReturned"]+' items</button>'
+                  }
+                  html += '<button class="tertiary" onclick="clear_items_display()">Return to Map</button>';
+                  html += '</div>'
+                  for (let fIdx=0;fIdx < output["features"].length;fIdx++) {
+                      html += '<div class="row">';
+                      html += '<div class="card fluid">';
+                      html += '<fieldset>';
+                      html += '<legend>Item</legend>';
+                      html += '<div class="row"><label for="idlabel"><strong>id:</strong></label><label id="idlabel">'+output["features"][fIdx]["id"]+'</label></div>';
+                      if (output["features"][fIdx]["properties"]["datetime"] != undefined) {
+                          html += '<div class="row"><label for="dtlabel"><strong>Datetime:</strong></label><label id="dtlabel">'+output["features"][fIdx]["properties"]["datetime"]+'</label></div>';
+                      }
+                      if  (output["features"][fIdx]["properties"]["parameter-name"] != undefined) {
+                          html += '<div class="row"><label for="plabel"><strong>Parameter-name:</strong></label><label id="plabel">'+output["features"][fIdx]["properties"]["parameter-name"]+'</label></div>';
+                      }
+                      if  (output["features"][fIdx]["properties"]["units"] != undefined) {
+                          html += '<div class="row"><label for="ulabel"><strong>units:</strong></label><label id="ulabel">'+output["features"][fIdx]["properties"]["units"]+'</label></div>';
+                      }
+                      if  (output["features"][fIdx]["properties"]["format"] != undefined) {
+                          html += '<div class="row"><label for="flabel"><strong>Data format:</strong></label><label id="flabel">'+output["features"][fIdx]["properties"]["format"]+'</label></div>';
+                      }
+                      html += '<div class="row"><label for="crslabel"><strong>Coordinate reference system:</strong></label><label id="crslabel">'+output["features"][fIdx]["properties"]["coordinate_ref_system"]["name"]+'</label></div>';
+                      html += '<div class="row"><label for="arealabel"><strong>Bounding box:</strong></label><label id="arealabel">['+turf.envelope(output["features"][fIdx]["geometry"]).bbox+']</label></div>';
+                      if (output["features"][fIdx]["properties"]["levels"] != undefined) {
+                          html += '<div class="row"><div class="card fluid"><div class="row"><label for="llabel"><strong>'+output["features"][fIdx]["properties"]["levels"]["type"]+' levels:</strong></label><label id="llabel">['+output["features"][fIdx]["properties"]["levels"]["values"]+']</label></div>';
+                          html += '<div class="row"><label for="lulabel"><strong>'+output["features"][fIdx]["properties"]["levels"]["type"]+' units:</strong></label><label id="lulabel">'+output["features"][fIdx]["properties"]["levels"]["units"]+'</label></div></div></div>';
+                        }
+                      if (output["features"][fIdx]["properties"]["edrqueryendpoint"] != undefined) {
+                          html += '<div class="row"><label for="llabel"><strong>Download url:</strong></label><label id="llabel"><a href="'+output["features"][fIdx]["properties"]["edrqueryendpoint"]+'">'+output["features"][fIdx]["properties"]["edrqueryendpoint"]+'</a></label></div>';
+                      } else if (output["features"][fIdx]["assets"] != undefined) {
+                          for (asset in output["features"][fIdx]["assets"] ) {
+                              html += '<div class="row"><label for="llabel"><strong>Download url:</strong></label><label id="llabel"><a href="'+output["features"][fIdx]["assets"][asset]["href"] + '">'+output["features"][fIdx]["assets"][asset]["href"]+'</a></label></div>';
+                              html += '<div class="row"><label for="flabel"><strong>Data format:</strong></label><label id="flabel">'+output["features"][fIdx]["assets"][asset]["type"]+'</label></div>';
+                          }
+
+                      }
+                      html += '</fieldset>';
+                      html += '</div>';
+                      html += '</div>';
+
+                  }
+                  document.getElementById("items").innerHTML = html
+
+                  document.getElementById("itemsviewer").style.cssText = "display:block"
+                  document.getElementById("map").style.cssText = "display:none"
+                  document.getElementById("loading_wheel").style.cssText = "display:none;";
+              });
+
+        }
+
+      function clear_items_display() {
+        document.getElementById("items").innerHTML = ""
+        document.getElementById("map").style.cssText = mapVisStyle;
+        document.getElementById("itemsviewer").style.cssText = "display:none;";
+      }
+    </script>
+    <!--
+    src="http://labs.metoffice.gov.uk/edr/static/js/locsquery.js"
+      -->
+    <script type="text/javascript">
+      function getLocsQuery() {
+          document.getElementById("loading_wheel").style.cssText = "display:inline;left:50%;top:50%;width:35px;height:35px;z-index:10000;position:absolute;";
+          removeLayers();
+
+          let query_url = "";
+          if (document.getElementById("instlist") == undefined) {
+              query_url = getQueryHref(collectionJSON.collections[document.getElementById('collist').selectedIndex].data_queries[document.getElementById('qlist').value])
+          } else {
+              query_url = getQueryHref(instJSON.instances[document.getElementById('instlist').selectedIndex].data_queries[document.getElementById('qlist').value])
+          }
+
+
+
+          let valid_url = true;
+          if (document.getElementById('locations')!== null)  {
+              query_url += "/" + document.getElementById('locations').item(document.getElementById('locations').selectedIndex).innerText;
+          }
+          query_url += '?'
+
+          let paramOpts = document.getElementsByName("parameter-name");
+          let parameter_name = "";
+          let delim = "";
+          for (let p of paramOpts) {
+              if (p.checked == true)
+              {
+                  parameter_name += delim + p.id;
+                  delim = ",";
+              }
+          }
+
+          if (parameter_name.length  > 0) {
+              query_url += "&parameter-name=" + parameter_name;
+          }
+
+
+          if (document.getElementById('starttime') !== null) {
+              if (new Date(document.getElementById('starttime').value) > new Date(document.getElementById('endtime').value)) {
+                  alert("End date must be greater or equal to the Start date of the query");
+                  valid_url = false;
+              } else if (document.getElementById('starttime').value == document.getElementById('endtime').value) {
+                  query_url += "&datetime=" + document.getElementById('starttime').value;
+              } else {
+                  query_url += "&datetime=" + document.getElementById('starttime').value + "/" + document.getElementById('endtime').value;
+              }
+          }
+
+          if (document.getElementById('crs').value.length > 0) {
+              query_url += "&crs=" + document.getElementById('crs').item(document.getElementById('crs').selectedIndex).innerText;
+          }
+
+          if (document.getElementById('outputformat').value.length > 0) {
+
+              query_url += "&f=" + document.getElementById('outputformat').value;
+          }
+
+          if (base_server_url) {
+            query_url = base_server_url+query_url;
+          }
+          document.getElementById("qurl").value = query_url;
+          displayRequest(query_url);
+          if (document.getElementById('outputformat').value.toLowerCase() == "coveragejson") {
+              if (valid_url) {
+                  get_coveragejson_data(query_url);
+
+                  } else {
+                  renderOther();
+              }
+
+          }
+          else if (document.getElementById('outputformat').value.toLowerCase() == "geojson") {
+              renderGeoJSON();
+          } else {
+              renderOther();
+
+          }
+
+
+      }
+    </script>
+    <script type="text/javascript">
+      function getCorridorQuery() {
+
+          removeLayers();
+          document.getElementById("loading_wheel").style.cssText = "display:inline;left:50%;top:50%;width:35px;height:35px;z-index:10000;position:absolute;";
+
+          let query_url = "";
+          if (document.getElementById("instlist") == undefined) {
+              query_url = getQueryHref(collectionJSON.collections[document.getElementById('collist').selectedIndex].data_queries[document.getElementById('qlist').value])
+          } else {
+              query_url = getQueryHref(instJSON.instances[document.getElementById('instlist').selectedIndex].data_queries[document.getElementById('qlist').value])
+          }
+
+
+          let valid_url = true;
+          if ((document.getElementById('coords')!== null) && (document.getElementById('coords').value.length > 0)) {
+              query_url +='?coords=' + document.getElementById('coords').value;
+          } else {
+              alert ("Please define the trajectory (click trajectory icon on left handside of the map then click on your required vertices to generate the coordinates)");
+              valid_url = false;
+          }
+          let paramOpts = document.getElementsByName("parameter-name");
+          let parameter_name = "";
+          let delim = "";
+          for (let p of paramOpts) {
+              if (p.checked == true)
+              {
+                  parameter_name += delim + p.id;
+                  delim = ",";
+              }
+          }
+
+          if (parameter_name.length  > 0) {
+              query_url += "&parameter-name=" + parameter_name;
+          }
+
+          if  (document.getElementById('coords').value.indexOf("M") == -1) {
+              if (document.getElementById('starttime') !== null) {
+                  if (new Date(document.getElementById('starttime').value) > new Date(document.getElementById('endtime').value)) {
+                      alert("End date must be greater or equal to the Start date of the query");
+                      valid_url = false;
+                  } else if (new Date(document.getElementById('starttime').value) == new Date(document.getElementById('endtime').value)) {
+                      query_url += "&datetime=" + document.getElementById('starttime').value;
+                  } else {
+                      query_url += "&datetime=" + document.getElementById('starttime').value + "/" + document.getElementById('endtime').value;
+                  }
+              }
+          }
+          if (document.getElementById('coords').value.indexOf("Z") == -1) {
+              heightInfo = document.querySelectorAll("[id*=vrt]");
+              if (heightInfo.length > 0) {
+                  let zvals = "";
+                  let mxval = -99999;
+                  let mnval = 999999;
+                  let v_range = false;
+                  let delim = "";
+                  for (indx=0; indx < heightInfo.length;indx++) {
+                      val = heightInfo[indx];
+                      let parts = val.id.split("-");
+                      if (parts[1] == "mm") {
+                          if (val.checked) {
+                              v_range = true;
+                          }
+                      }
+                      else {
+
+                          if (val.checked) {
+                              let v_num = Number(parts[1]);
+                              if (v_num < mnval) {
+                                  mnval = v_num;
+                              }
+                              if (v_num > mxval) {
+                                  mxval = v_num;
+                              }
+                              zvals += delim + parts[1];
+                              delim = ","
+                          }
+                      }
+                  }
+                  if (v_range) {
+                      zvals = String(mnval) + "/" + String(mxval);
+                  }
+                  query_url += "&z=" + zvals;
+              }
+          }
+
+          query_url += "&corridor-width=" + document.getElementById('corridor-width').value;
+          query_url += "&width-units=" + document.getElementById('width-units').value;
+          query_url += "&corridor-height=" + document.getElementById('corridor-height').value;
+          query_url += "&height-units=" + document.getElementById('height-units').value;
+
+          if (document.getElementById('crs').value.length > 0) {
+              query_url += "&crs=" +  document.getElementById('crs').item(document.getElementById('crs').selectedIndex).innerText;
+          }
+
+          if (document.getElementById('outputformat').value.length > 0) {
+              query_url += "&f=" +  document.getElementById('outputformat').value;
+          }
+
+          if (base_server_url){
+            query_url = base_server_url+query_url;
+          }
+          document.getElementById("qurl").value = query_url;
+          displayRequest(query_url);
+          if (document.getElementById('outputformat').value.toLowerCase() == "coveragejson") {
+              if (valid_url) {
+                  get_coveragejson_data(query_url);
+
+                  } else {
+                  renderOther();
+              }
+
+          }
+          else if (document.getElementById('outputformat').value.toLowerCase() == "geojson") {
+              renderGeoJSON();
+          } else {
+              renderOther();
+
+          }
+      }
+    </script>
+    <script src="http://labs.metoffice.gov.uk/edr/static/js/line-interpolate-points.js"></script>
+    <script src="http://labs.metoffice.gov.uk/edr/static/js/time_duration.js"></script>
+    <script src="https://cdn.jsdelivr.net/covjson-reader/0.16.3/covjson-reader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wicket/1.3.6/wicket.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js" integrity="sha512-Q7HOppxoH0L2M7hreVoFCtUZimR2YaY0fBewIYzkCgmNtgOOZ5IgMNYxHgfps0qrO1ef5m7L1FeHrhXlq1I9HA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
 {% endblock %}
 
 {% block body %}
-TEST here.......
-{#
-<!--    <section id="collection">
-      <div class="row">
-        <div class="col-sm">
-          <h1>{{ data['title'] }}</h1>
-          <p>{{ data['description'] }}</p>
-          <p>
-            {% for kw in data['keywords'] %}
-              <mark class="tag">{{ kw }}</mark>
-            {% endfor %}
-          </p>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-sm-12">
-          <div id="collection-map"></div>
-        </div>
-      </div>
-      {% if data['itemType'] == 'feature' or data['itemType'] == 'record' %}
-      <h3>{% trans %}Browse{% endtrans %}</h3>
-      <ul>
-        <li>
-          <div>
-            <a title="{% trans %}Browse Items{% endtrans %}" href="{{ config['server']['url'] }}/collections/{{ data['id'] }}/items">
-              {% trans %}Browse through the items of{% endtrans %} "{{ data['title'] }}"</a></div>
-        </li>
-      </ul>
-      <h3>{% trans %}Queryables{% endtrans %}</h3>
-      <ul>
-        <li>
-          <div>
-            <a title="{% trans %}Display Queryables{% endtrans %}" href="{{ config['server']['url'] }}/collections/{{ data['id'] }}/queryables">
-              {% trans %}Display Queryables of{% endtrans %} "{{ data['title'] }}"</a></div>
-        </li>
-      </ul>
-      {% for provider in config['resources'][data['id']]['providers'] %}
-        {% if 'tile' in provider['type'] %}
-      <h3>{% trans %}Tiles{% endtrans %}</h3>
-      <ul>
-        <li>
-          <div>
-            <a title="{% trans %}Display Tiles{% endtrans %}" href="{{ config['server']['url'] }}/collections/{{ data['id'] }}/tiles">{% trans %}Display Tiles of{% endtrans %} "{{ data['title'] }}"</a>
-          </div>
-        </li>
-      </ul>
-        {% endif %}
-      {% endfor %}
-      {% endif  %}
-      <h3>{% trans %}Links{% endtrans %}</h3>
-      <ul>
-      {% for link in data['links'] %}
-          <li>
-            <a title="{{ link['rel'] }}" href="{{ link['href'] }}">
-            <span>{{ link['title'] }}</span> (<span>{{ link['type'] }}</span>)
-            </a></li>
-      {% endfor %}
-      </ul>
-      {% if 'data_queries' in data %}
-        <h3>{% trans %}Data Queries{% endtrans %}</h3>
-        <ul>
-        {% for key, value in data["data_queries"].items() %}
-            <li>
-              {% if value['link']['href'].startswith("/") %}
-                <a title="{{ value['link']['rel'] }}" href="{{ config["server"]["url"] }}{{ value['link']['href'] }}">
-              {% else %}
-                <a title="{{ value['link']['rel'] }}" href="{{ value['link']['href'] }}">
-              {% endif %}
-              <span>{{ value['link']['variables']['title'] }}</span> (<span>{{ value['link']['variables']['query_type'] }}</span>)
-              </a>
-            </li>
+<div id="test1">
+</div>
+<section id="collection">
+  <div class="row">
+    <div class="col-sm">
+      <h1>{{ data['title'] }}</h1>
+      <p>{{ data['description'] }}</p>
+      <p>
+        {% for kw in data['keywords'] %}
+          <mark class="tag">{{ kw }}</mark>
         {% endfor %}
-        </ul>
-      {% endif %}
-    </section>
--->
-#}
+      </p>
+    </div>
+  </div>
+  <div class="row" id="title-row">
+      <div class="col-sm-8">
+          <span class="tooltip bottom"
+              aria-label="Enter valid EDR server collections endpoint i.e. http://www.example.com/collections"><input
+                  style="width:60%" type="text" id="EDRURL" value=""
+                  placeholder="EDR Server Collections URL i.e. http://www.example.com/collections"></span><input
+              type="button" onclick="makeRequest()" value="Retrieve collections" />
+      </div>
+      <div class="col-sm-2">
+          <span class="tooltip" aria-label="Map or Data view" style="left:50%;">
+              <input type="radio" id="dataViewChoice1" name="dataview" value="map" onchange="changeview()">
+              <label for="dataViewChoice1">Map</label>
+              <input type="radio" id="dataViewChoice2" name="dataview" value="data" onchange="changeview()">
+              <label for="dataViewChoice1">Data</label>
+          </span>
+      </div>
+      <div class="col-sm-2"></div>
+  </div>
+  <div id="qrow" class="row">
+      <div class="col-sm-8" id="query-view">
+          <div class="spinner" style="display:none;" id="loading_wheel"></div>
+          <div id="map">MAP</div>
+          <div id="dataviewer" style="display: none;">
+              <h3 class="section" id="dvheader">Results</h3>
+              <p class="section" id="dvcode"></p>
+          </div>
+          <div id="itemsviewer" style="display: none;">
+              <h3 id="sheader" class="section">Items</h3>
+              <p id="items" class="section">
+              </p>
+          </div>
+      </div>
+      <div class="col-sm-4" id="query-view">
+          <div id="dcontainer">
+              <div id="frow">
+                  <div id="colcontainer">
+                      <legend id="collectionlegend">Collections</legend>
+                      <div id="collectionfields">
+                          <div class="row">
+                              <div class="col-sm-3"><label for="collist">Collection:</label></div>
+                              <div class="col-sm-9">
+                                  <select type="text" id="collist" onchange="getCollDetails()"></select>
+                              </div>
+                          </div>
+                          <div class="row" id="selinst">
+                          </div>
+                          <div class="row">
+                              <div class="col-sm-3"><label for="qlist">Query:</label></div>
+                              <div class="col-sm-4"><select type="text" id="qlist"
+                                      onchange="queryChange()"></select></div>
+                              <div class="col-sm-3" style="display:none" id="rvald"><input type="number" id="rval"
+                                      max="99" maxlength="2" size="3"></div>
+                              <div class="col-sm-2" style="display:none" id="rinfod"><select id="rinfo"></select>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+                  <legend id="formlegend"></legend>
+                  <div id="formfields"></div>
+              </div>
+          </div>
+          <div id="queryviewer" style="display: none;">
+              <table id="expand_query">
+                  <thead>
+                      <th>EDR Query</th>
+                  </thead>
+                  <tbody id="query_rows">
+
+                  </tbody>
+              </table>
+          </div>
+
+      </div>
+  </div>
+  <div id="urow" class="row" id="url-row">
+      <div class="col-sm-8">
+          <div class="row">
+              <div class="col-sm-1" onclick="copyToClipboard();">
+                  <span class="tooltip" aria-label="Copy Query URL to clipboard" style="left: 50%;">
+                      <svg class="octicon octicon-clippy" viewBox="0 0 14 16" version="1.1" width="28" height="32"
+                          aria-display="true">
+                          <path fill-rule="evenodd"
+                              d="M2 13h4v1H2v-1zm5-6H2v1h5V7zm2 3V8l-3 3 3 3v-2h5v-2H9zM4.5 9H2v1h2.5V9zM2 12h2.5v-1H2v1zm9 1h1v2c-.02.28-.11.52-.3.7-.19.18-.42.28-.7.3H1c-.55 0-1-.45-1-1V4c0-.55.45-1 1-1h3c0-1.11.89-2 2-2 1.11 0 2 .89 2 2h3c.55 0 1 .45 1 1v5h-1V6H1v9h10v-2zM2 5h8c0-.55-.45-1-1-1H8c-.55 0-1-.45-1-1s-.45-1-1-1-1 .45-1 1-.45 1-1 1H3c-.55 0-1 .45-1 1z">
+                          </path>
+                      </svg>
+                  </span>
+              </div>
+              <div class="col-sm-11">
+                  <input id="qurl"></input>
+              </div>
+          </div>
+      </div>
+      <div class="col-sm-4">
+          <button class="tertiary" onclick="getData();" style="display:none" id="gdata">GetData</button>
+      </div>
+  </div>
+  <div>
+      <input type="checkbox" id="modal-control" class="modal">
+      <div>
+          <div class="card">
+              <label for="modal-control" class="modal-close"></label>
+              <h3 class="section" id="rheader">Results</h3>
+              <p class="section" id="rcode"></p>
+          </div>
+      </div>
+  </div>
+</section>
 {% endblock %}
 
 {% block extrafoot %}
+<input type="checkbox" id="traj_edit" class="modal">
+<div class="col-sm-12" id="display_traj">
+  <div class="card fluid" >
+    <label for="traj_edit" class="modal-close" ></label>
+    <h3 class="section">Edit trajectory coordinates</h3>
+    <p class="section">
+        <table >
+            <caption>Coordinates</caption>
+            <colgroup id="tjcols">
+            </colgroup>
+            <thead id="tjhead">
+            </thead>
+            <tbody id="tjbdy">
+            </tbody>
+          </table>
+          <input type="button" onclick="save_traj()" value="OK" />
+    </p>
+  </div>
+</div>
 <style>
-  .flat {
-      border: 0px;
-  }
-
-  header {
-      display: inline-block;
-  }
-
-  main {
-      background-color:white
-  }
-
-  .crumbs {
-      background-color:rgb(230, 230, 230);
-      padding: 6px;
-  }
-
-  .crumbs a {
-      padding: 0px 6px;
-      color:black;
-  /*    text-transform: capitalize;*/
-  }
-
-  #items-map, #collection-map {
+  html,
+  body,
+  #map {height: 800px; },
+  #dataviewer,
+  .container {
       width: 100%;
-      height: 400px;
+      height: 100%;
   }
 
-  /* cancel mini-css header>button uppercase */
-  header button, header [type="button"], header .button, header [role="button"] {
-      text-transform: none;
-  }
-
-  html, body {
-      background-color: #fff;
-  }
-
-  footer.sticky {
-      position: fixed;
+  #trow {
       width: 100%;
+      height: 8%;
   }
 
-  main {
-      padding-bottom: 65px; /* prevent from falling under the footer */
+  #qrow {
+      width: 100%;
+      height: 85%;
   }
 
-  table:not(.horizontal) {
-      max-height: none;
+  #query-view {
+      width: 100%;
+      height: 100%;
   }
 
-  mark.successful {
-    background-color: green;
+  #urow {
+      width: 100%;
+      height: 7%;
   }
 
-  mark.accepted {
-    background-color: default;
+  #frow {
+      width: 100%;
+      height: 90%;
+
   }
 
-  mark.failed {
-    background-color: red;
+  #formfields {
+      width: 100%;
+      height: 100%;
   }
 
-  mark.running {
-    background-color: orange;
+
+  #coords, #collist, #locations {
+      width:95%;
   }
 
+  #brow {
+      width: 100%;
+      height: 10%;
+  }
+
+  #dcontainer {
+      width: 100%;
+      height: 100%;
+      overflow-y: scroll;
+  }
+
+  #pnames {
+      overflow-y: scroll;
+      min-height: 25%;
+      max-height: 40%;
+  }
+
+  #zgroup {
+      overflow-y: scroll;
+      min-height: 10%;
+      max-height: 120px;
+      width: 200px;
+      font-size: 15px;
+      line-height: 16px;
+      border-collapse: collapse;
+  }
+
+  tr {
+      line-height: 0.5;
+  }
+
+  th {
+      height: 20px;
+  }
+
+  input {
+      --input-border-color:#000;
+  }
+
+  .frame::-webkit-scrollbar {
+      -webkit-appearance: none;
+  }
+
+  .frame::-webkit-scrollbar:vertical {
+      width: 11px;
+  }
+
+  .frame::-webkit-scrollbar:horizontal {
+      height: 11px;
+  }
+
+  .frame::-webkit-scrollbar-thumb {
+      border-radius: 8px;
+      border: 2px solid white;
+      /* should match background, can't be transparent */
+      background-color: rgba(0, 0, 0, .5);
+  }
+
+  .test {
+      background-color: #5c8e30;
+  }
+  .card {
+      width: auto;
+      max-width: 80%;
+      height: 80%;
+      overflow-y: scroll;
+  }
+
+  .dataview {
+      overflow-y: scroll;
+      overflow-x: auto;
+  }
+  code {
+      line-height: normal;
+      font-size: 1.4em;
+  }
+  #dvcode,
+  #precode {
+      width: 95%;
+      height: 95%;
+      font: 2em;
+  }
+
+  #qurl {
+      width:95%;
+  }
+
+  #queryviewer, #itemsviewer {
+      display: block;
+      height: 95%;
+      overflow-y: scroll;
+  }
+
+  #expand_query{
+      height:95%;
+      width:95%;
+      overflow: auto;
+      max-height: 95%;
+  }
+
+  .marker-properties,
+  .metadata {
+      border-collapse:collapse;
+      font-size:11px;
+      width:100%;
+      overflow:auto;
+      border-bottom:1px solid #ccc;
+
+      /* Equal to 6 rows */
+      max-height:189px;
+  }
+
+  .marker-properties {
+      display:block;
+  }
+
+  .metadata {
+      display:table;
+  }
+
+  .marker-properties th {
+      width:33.3333%;
+      min-width:100px;
+      white-space:nowrap;
+      border:1px solid #ccc;
+  }
+
+  .marker-properties td {
+      width:60%;
+  }
+
+  .marker-properties.display td,
+  .marker-properties.display th {
+      padding:5px 10px;
+  }
+
+  .marker-properties tr:last-child td,
+  .marker-properties tr:last-child th {
+      border-bottom:none;
+  }
+
+  .marker-properties tr:nth-child(even) th,
+  .marker-properties tr:nth-child(even) td,
+  .metadata tr:nth-child(even) td {
+      background-color:#f7f7f7;
+  }
 </style>
-{#
-<!--
-      <script>
-    var map = L.map('collection-map').setView([{{ 0 }}, {{ 0 }}], 1);
-    map.addLayer(new L.TileLayer(
-      '{{ config['server']['map']['url'] }}', {
-        maxZoom: 18,
-        attribution: '{{ config['server']['map']['attribution'] | safe }}'
+
+<script type="text/javascript">
+  /*
+  script - main - client
+  */
+  let capsIndx = -1;
+  let zoom_level = 2;
+  let urlparts = unescape(location.pathname).split("/");
+  let urllen = urlparts.length;
+  let collection = urlparts[urllen - 2];
+  let map_center = [0, 0]
+  let httpRequest;
+  let locRequest;
+  let capsJSON;
+  let collectionJSON;
+  let instJSON;
+  let errmsg = ""
+  let mapVisStyle;
+  let dcontainerVisStyle
+  let drawcontrol = new L.Control.Draw({ draw: { circle: false, rectangle: false, polyline: false, circlemarker: false, marker: false, polygon: false } });
+  let colIndx = -1;
+  const CHANGE_EVENT = new Event("change");
+
+  if (location.pathname.indexOf('static') > -1) {
+      // document.getElementById("EDRURL").value = location.href.replace('/static/html/query.html', '/collections?f=application/json');
+      document.getElementById("EDRURL").value = base_server_url + '/collections?f=application/json';
+      document.getElementById("EDRURL").style.width = document.getElementById("EDRURL").value.length + "ch";
+  }
+  else {
+      // document.getElementById("EDRURL").value = location.href.split("/collections")[0] + "/collections?f=application/json";
+      document.getElementById("EDRURL").value = base_server_url + "/collections?f=application/json";
+      document.getElementById("EDRURL").style.width = document.getElementById("EDRURL").value.length + "ch";
+  }
+
+  document.getElementById("modal-control").checked = false;
+  document.getElementById("dataViewChoice1").checked = true;
+
+  function styleJSON() {
+      document.querySelectorAll('pre code').forEach((block) => {
+          hljs.highlightBlock(block);
+      });
+  };
+
+
+  function parseTimeInterval(time_interval) {
+      let parts = time_interval.substr(1).split("/");
+      let r = parseInt(parts[0]);
+      let sdate = new Date(parts[1].replace(':00Z',':00+00:00'));
+      let times = [];
+      let dur = duration_parse(parts[2])
+      for (let tstep = 0; tstep <= r; tstep++) {
+          times.push(sdate.toISOString().replace(':00.000Z', 'Z'));
+          sdate = time_end(dur, sdate);
       }
-    ));
+      return times;
+  }
 
-    var bbox_layer = L.polygon([
-      ['{{ data['extent']['spatial']['bbox'][1] }}', '{{ data['extent']['spatial']['bbox'][0] }}'],
-      ['{{ data['extent']['spatial']['bbox'][3] }}', '{{ data['extent']['spatial']['bbox'][0] }}'],
-      ['{{ data['extent']['spatial']['bbox'][3] }}', '{{ data['extent']['spatial']['bbox'][2] }}'],
-      ['{{ data['extent']['spatial']['bbox'][1] }}', '{{ data['extent']['spatial']['bbox'][2] }}']
-    ]);
+  function copyToClipboard() {
+      navigator.clipboard.writeText(document.querySelector("#qurl").value).then(function() {
+          /* clipboard successfully set */
+      }, function() {
+          /* clipboard write failed */
+      });
+  }
 
-    map.addLayer(bbox_layer);
-    map.fitBounds(bbox_layer.getBounds(), {maxZoom: 10});
-    </script>
--->
-#}
+  function renderGeoJSON() {
+      fetch(document.getElementById("qurl").value)
+          .then(function (response) {
+              if (response.status > 399) {
+                  document.getElementById("loading_wheel").style.cssText = "display:none;";
+                  alert("Error in query, API docs can be found here: " + window.location.href.replace("/static/html/query.html", "/api"));
+                  return { "Error": "Error" }
+              } else {
+                  document.getElementById("loading_wheel").style.cssText = "display:none;";
+                  return response.json()
+              }
+          }).then(function (output) {
+              map.eachLayer(function (layer) {
+
+                  if (layer.myTag && layer.myTag === "GeoJSONdata") {
+                      map.removeLayer(layer)
+                  }
+
+              });
+
+
+
+
+              document.getElementById('dvcode').innerHTML = "<pre id=\"precode\" class=\"prettyprint\"><code class=\"language-json\">" + JSON.stringify(output, null, 1) + "</code></pre>"
+              L.geoJSON(output, {
+                  onEachFeature: function (feature, layer) {
+
+                      layer.myTag = "GeoJSONdata";
+                      var table = document.createElement('table');
+                      table.setAttribute('class', 'marker-properties display');
+                      for (var key in feature.properties) {
+                          var tr = createTableRows(key, feature.properties[key]);
+                          table.appendChild(tr);
+                      }
+                      if (table) layer.bindPopup(table);
+                     // layer.bindPopup(JSON.stringify(feature.properties));
+                  }
+              }).addTo(map);
+          });
+  }
+
+
+  function createTableRows(key, value) {
+      var tr = document.createElement('tr');
+      var th = document.createElement('th');
+      var td = document.createElement('td');
+      key = document.createTextNode(key);
+      if (Object.prototype.toString.call(value) === "[object String]") {
+          value = document.createTextNode(value);
+      } else {
+          value = document.createTextNode(JSON.stringify(value));
+      }
+      th.appendChild(key);
+      td.appendChild(value);
+      tr.appendChild(th);
+      tr.appendChild(td);
+      return tr
+  };
+
+  function getData() {
+      if (document.getElementById('qlist').value == "position" || document.getElementById('qlist').value == "radius") {
+          getPointQuery();
+      } else if (document.getElementById('qlist').value == "area") {
+          getPolygonQuery()
+      } else if (document.getElementById('qlist').value == "cube") {
+          getCubeQuery()
+      }
+      else if (document.getElementById('qlist').value == "trajectory") {
+          getTrajectoryQuery()
+      } else if (document.getElementById('qlist').value == "items") {
+          getItemsQuery()
+      } else if (document.getElementById('qlist').value == "locations") {
+          getLocsQuery()
+      } else if (document.getElementById('qlist').value == "corridor") {
+          getCorridorQuery()
+      }
+  }
+
+
+
+  function changeview() {
+      if (document.getElementById("dataViewChoice2").checked) {
+          mapVisStyle = document.getElementById("map").style.cssText;
+          dcontainerVisStyle = document.getElementById("dcontainer").style.cssText;
+
+          document.getElementById("map").style.cssText = "display:none;";
+          document.getElementById("dcontainer").style.cssText = "display:none;";
+
+
+          document.getElementById("dataviewer").style.cssText = "display:block;";
+          document.getElementById("queryviewer").style.cssText = "display:block;height: 95%;";
+          styleJSON();
+      } else {
+          document.getElementById("map").style.cssText = mapVisStyle;
+          document.getElementById("dcontainer").style.cssText = dcontainerVisStyle;
+          document.getElementById("dataviewer").style.cssText = "display:none;";
+          document.getElementById("queryviewer").style.cssText = "display:none;";
+      }
+  }
+  function createFormGroup(labelId, label, impType, col1, col2, name) {
+
+      html_block = '<div class="row"><div class="col-sm-' + col1 + '"><label for="' + labelId + '">' + label + '</label></div>';
+      html_block += '<div class="col-sm-' + col2 + '"><input type="' + impType + '" id="' + labelId + '" name="' + name + '" /></div></div>';
+      return html_block;
+  }
+
+  function parse_time_range(timeValue) {
+      let time_parts = timeValue.split("/");
+
+      let hour = 1000 * 60 * 60;
+      let timeValues = [];
+      let start_time = new Date(time_parts[0]);
+      let end_time = new Date(time_parts[1]);
+      let diff = (end_time.getTime() - start_time.getTime()) / hour;
+      for (i = 0; i < diff; i++) {
+          timeValues.push((new Date(start_time.getTime() + (i * hour))).toISOString().replace(':00.000Z', 'Z'))
+      }
+      return timeValues;
+  }
+
+  function parse_time_string(timeStr) {
+      let timeList = [];
+      if (timeStr.indexOf("/") > -1) {
+          if (timeStr.split("/").length == 3) {
+              timeList = timeList.concat(parseTimeInterval(timeStr));
+          } else {
+              timeList = timeList.concat(parse_time_range(timeStr));
+          }
+      } else if (timeStr.indexOf(",") > -1) {
+          timeList = timeList.concat(timeStr.split(","));
+      } else {
+          timeList.push(timeStr);
+      }
+      return timeList
+  }
+
+  function createTimeGroup(timeValues) {
+      let html_block = '<div class="row"><div id="tgroup" class="container"><div class="row">';
+      html_block += '<div class="col-sm-6"><label>Start time</label></div>';
+      html_block += '<div class="col-sm-6"><label>End time</label></div></div>';
+      html_block += '<div class="row"><div class="col-sm-6">';
+      let times_block_start = '';
+      let times_block_end = '';
+
+      let timeList = [];
+      for (let grp in timeValues) {
+          if (Array.isArray(timeValues[grp])) {
+              for (let tvals in timeValues[grp]) {
+                  timeList = timeList.concat(parse_time_string(timeValues[grp][tvals]))
+              }
+          } else {
+              timeList = timeList.concat(parse_time_string(timeValues[grp]));
+          }
+      }
+      times_block_end += '<option>..</option>';
+
+      for (let timeIndex in timeList) {
+          times_block_start += '<option>' + timeList[timeIndex] + '</option>';
+          times_block_end += '<option>' + timeList[timeIndex] + '</option>';
+      }
+      times_block_start += '<option>..</option>';
+
+
+
+  //    html_block += '<select type="text" id="starttime">' + times_block_start + '</select>'
+      html_block += '<input list="starttimes" id="starttime" placeholder="Start typing...">';
+      html_block += '<datalist id="starttimes">' + times_block_start + '</datalist>';
+
+      html_block += '</div><div class="col-sm-6">';
+  //    html_block += '<select type="text" id="endtime">' + times_block_end + '</select>'
+      html_block += '<input list="endtimes" id="endtime" placeholder="Start typing...">';
+      html_block += '<datalist id="endtimes">' + times_block_end + '</datalist>';
+      html_block += '</div></div></div></div>'
+      return html_block;
+  }
+
+  function createSelectGroup(groupName, selectValues) {
+      let html_block = '<div class="row"><div class="col-sm-3"><label for="' + groupName + '">' + groupName + '</label></div><div class="col-sm-9"><select type="text" id="' + groupName + '">';
+      for (let selIndex in selectValues) {
+          html_block += '<option>' + selectValues[selIndex] + '</option>';
+      }
+      html_block += '</select></div></div>';
+      return html_block;
+  }
+
+  function createListGroup(groupName, selectValues, id) {
+      let html_block = '<div class="row"><table id="zgroup"><thead><tr><div class="col-sm-12">Select levels<label for="vrt-mm-check"><span class="tooltip" aria-label="If two values are selected treat them as a minimum and maximum value of a range">min/max range</label><input type="checkbox" autocomplete="off" id="vrt-mm-check+"></span></div></tr></thead><tbody>';
+      if (id.length > 0) {
+          id = 'class="'+id+'"';
+      }
+      for (let selIndex in selectValues) {
+          html_block += '<tr><td><label ' +id+ ' for="vrt-' + selectValues[selIndex] + '-check" >' + selectValues[selIndex] + '</label><input type="checkbox" autocomplete="off" id="vrt-' + selectValues[selIndex] + '-check"></td></tr>';
+      }
+      html_block += "</tbody></table></div>";
+      return html_block;
+  }
+
+  function makeRequest() {
+      document.getElementById("loading_wheel").style.cssText = "display:inline;left:50%;top:50%;width:35px;height:35px;z-index:10000;position:absolute;";
+      displayRequest(document.getElementById("EDRURL").value);
+      httpRequest = new XMLHttpRequest();
+
+      if (!httpRequest) {
+          alert('Giving up :( Cannot create an XMLHTTP instance');
+          return false;
+      }
+      httpRequest.onreadystatechange = collectionsContents;
+      httpRequest.open('GET', document.getElementById("EDRURL").value);
+      httpRequest.send();
+
+  }
+
+  function displayRequest(theurl) {
+      let tRows = "";
+      document.getElementById("query_rows").innerHTML = tRows;
+      let urlparts = theurl.split("?");
+      tRows += "<tr><td>" + urlparts[0].replace(location.protocol + "//" + location.host, "") + "</td></tr>";
+      if (urlparts.length > 1) {
+          let queryparts = urlparts[1].split("&");
+          for (let qloop = 0; qloop < queryparts.length; qloop++) {
+              let qsections = queryparts[qloop].split("=");
+              tRows += "<tr><td>" + "<strong>" + qsections[0] + "=</strong>" + qsections[1] + "</td></tr>";
+          }
+      }
+      document.getElementById("query_rows").innerHTML = tRows;
+  }
+
+  function collectionsContents() {
+      if (httpRequest.readyState === XMLHttpRequest.DONE) {
+          if ((httpRequest.status === 200) || (httpRequest.status === 307)) {
+              collectionJSON = JSON.parse(httpRequest.responseText);
+              document.getElementById('dvcode').innerHTML = "<pre id=\"precode\"><code class=\"language-json\">" + JSON.stringify(collectionJSON, null, 1) + "</code></pre>"
+              newHTML = "";
+              for (let c in collectionJSON.collections) {
+                  newHTML += '<option>' + collectionJSON.collections[c].id + '</option>';
+              }
+              document.getElementById('collist').innerHTML = newHTML;
+              if (default_query_collection_id) {
+                document.getElementById('collist').value = default_query_collection_id
+              }
+              getCollDetails();
+          } else if (httpRequest.status < 400) {
+              console.log('status:' + httpRequest.status)
+          } else {
+              document.getElementById("loading_wheel").style.cssText = "display:none;";
+              alert('There was a problem with retrieving the metadata.');
+          }
+      }
+  }
+
+  function getInsts(iurl) {
+      document.getElementById("loading_wheel").style.cssText = "display:inline;left:50%;top:50%;width:35px;height:35px;z-index:10000;position:absolute;";
+
+      httpRequest = new XMLHttpRequest();
+
+      if (!httpRequest) {
+          alert('Giving up :( Cannot create an XMLHTTP instance');
+          return false;
+      }
+      httpRequest.onreadystatechange = instContents;
+      httpRequest.open('GET', iurl + '/?f=application/json');
+      httpRequest.send();
+
+  }
+
+  function instContents() {
+      if (httpRequest.readyState === XMLHttpRequest.DONE) {
+          if ((httpRequest.status === 200) || (httpRequest.status === 307)) {
+              instJSON = JSON.parse(httpRequest.responseText);
+              document.getElementById('dvcode').innerHTML = "<pre id=\"precode\" ><code class=\"language-json\">" + JSON.stringify(instJSON, null, 1) + "</code></pre>"
+              newHTML = '<div class="col-sm-3"><label>Instance:</label></div><div class="col-sm-9"><select type="text" id="instlist">';
+              for (let i in instJSON.instances) {
+                  newHTML += '<option>' + instJSON.instances[i].id + '</option>';
+              }
+              newHTML += '</select></div></div>';
+              document.getElementById('selinst').innerHTML = newHTML;
+              document.getElementById('instlist').addEventListener('change', (event) => {
+                  sinst = instJSON.instances[document.getElementById('instlist').selectedIndex];
+                  newHTML = "";
+                  for (l in sinst.data_queries) {
+                      if (sinst.data_queries[l].link.rel == "data") {
+                          newHTML += '<option>' + l + '</option>';
+                      }
+                  }
+                  document.getElementById('qlist').innerHTML = newHTML;
+                  if (default_query_type){
+                    document.getElementById('qlist').value = default_query_type
+                  }
+                  capsContents();
+              });
+
+              document.getElementById('instlist').dispatchEvent(CHANGE_EVENT);
+              document.getElementById("loading_wheel").style.cssText = "display:none;";
+              capsContents();
+          } else if (httpRequest.status < 400) {
+              console.log('status:' + httpRequest.status)
+          } else {
+              document.getElementById("loading_wheel").style.cssText = "display:none;";
+              alert('There was a problem with retrieving the metadata.');
+          }
+
+      }
+
+
+
+  }
+  function getCollDetails() {
+      console.log("IN getCollDetails.....")
+
+      scoll = collectionJSON.collections[document.getElementById('collist').selectedIndex];
+      console.log("scoll=");
+      console.log(scoll);
+      console.log("data_queries" in scoll);
+      if ("data_queries" in scoll){
+      console.log("instances" in scoll["data_queries"]);
+    }
+      newHTML = "";
+      instance_query = false;
+      for (l in scoll.data_queries) {
+          if (scoll.data_queries[l].link.rel == "data") {
+              newHTML += '<option>' + l + '</option>';
+          }
+      }
+      document.getElementById("loading_wheel").style.cssText = "display:none;";
+      if (scoll["data_queries"]["instances"] != undefined) {
+          getInsts(scoll["data_queries"]["instances"]["link"]["href"]);
+      }
+      else {
+          try {
+              document.getElementById('instlist').removeEventListener('change');
+          } catch (e) {
+
+          }
+          document.getElementById('selinst').innerHTML = "";
+          document.getElementById('qlist').innerHTML = newHTML;
+          if (default_query_type){
+            document.getElementById('qlist').value = default_query_type
+          }
+          capsContents();
+      }
+
+  }
+
+  function queryChange() {
+      try {
+          drawcontrol.remove();
+      } catch (e) {
+          alert(e);
+      }
+      capsContents();
+  }
+
+  function capsContents() {
+
+      let capsJSON = {}
+      if (document.getElementById("instlist") == undefined) {
+          capsJSON = collectionJSON.collections[document.getElementById("collist").selectedIndex]
+          capsIndx = document.getElementById("collist").selectedIndex;
+      } else {
+          capsJSON = instJSON.instances[document.getElementById("instlist").selectedIndex]
+          capsIndx = document.getElementById("collist").selectedIndex;
+      }
+
+
+      if (capsJSON.crs == undefined) {
+          capsJSON.crs = ['EPSG:4326']
+      }
+
+      for (let cloop = 0; cloop < capsJSON.crs.length; cloop++) {
+          if (capsJSON.crs[cloop].wkt == capsJSON.extent.spatial.crs) {
+              proj4.defs('datacrs', capsJSON.crs[cloop].wkt);
+              let c1 = proj4('datacrs').inverse([capsJSON.extent.spatial.bbox[1], capsJSON.extent.spatial.bbox[0]]);
+              let c2 = proj4('datacrs').inverse([capsJSON.extent.spatial.bbox[3], capsJSON.extent.spatial.bbox[2]]);
+              if (proj4.defs('datacrs').axis == "neu") {
+                  map.fitBounds([[c1[1], c1[0]], [c2[1], c2[0]]]);
+              }
+              else {
+                  map.fitBounds([c1, c2]);
+              }
+          }
+      }
+
+
+
+
+
+
+      let ispoint = false;
+      let ispolygon = false;
+      let isline = false;
+      let isbbox = false
+
+
+      if (document.getElementById("qlist").value == "radius") {
+          let newHTML = '';
+          if ((capsJSON.data_queries != undefined) && (capsJSON.data_queries.radius.link.variables != undefined)) {
+              for (let dUnit in capsJSON.data_queries.radius.link.variables.within_units) {
+                  newHTML += '<option>' + capsJSON.data_queries.radius.link.variables.within_units[dUnit] + '</option>';
+              }
+          }
+          document.getElementById("rinfo").innerHTML = newHTML;
+          document.getElementById("rinfod").style.cssText = "display:content";
+          document.getElementById("rvald").style.cssText = "display:content";
+
+          ispoint = true;
+      }
+      else {
+          if (document.getElementById("qlist").value == "position") {
+              ispoint = true;
+          }
+          else if (document.getElementById("qlist").value == "area") {
+              ispolygon = true;
+          }
+          else if ((document.getElementById("qlist").value == "cube") || (document.getElementById("qlist").value == "items")){
+              isbbox = true;
+          }
+          else if ((document.getElementById("qlist").value == "trajectory") || (document.getElementById("qlist").value == "corridor")) {
+              isline = true;
+
+          }
+          else if (document.getElementById("qlist").value == "items") {
+
+              isbbox = true;
+          }
+          document.getElementById("rinfo").innerHTML = "";
+          document.getElementById("rinfod").style.cssText = "display:none";
+          document.getElementById("rvald").style.cssText = "display:none";
+      }
+      document.getElementById("gdata").style.cssText = "display:content";
+      removeLayers();
+      drawnItems.clearLayers();
+      try {
+          drawcontrol.remove();
+      } catch (e) {
+          alert(e);
+      }
+
+      drawcontrol = new L.Control.Draw({
+          draw: {
+              circle: false,
+              rectangle: isbbox,
+              polyline: isline,
+              circlemarker: false,
+              marker: ispoint,
+              polygon: ispolygon
+          },
+          edit: {
+              featureGroup: drawnItems,
+              edit: false
+          }
+      });
+
+      map.addControl(drawcontrol);
+
+      let newHTML = ""
+      newHTML = "<div id='locdsc'>"
+      if (document.getElementById("qlist").value == "locations") {
+          document.getElementById("loading_wheel").style.cssText = "display:inline;left:50%;top:50%;width:35px;height:35px;z-index:10000;position:absolute;";
+          locRequest = new XMLHttpRequest();
+
+          if (!locRequest) {
+              alert('Giving up :( Cannot create an XMLHTTP instance');
+              return false;
+          }
+          locRequest.onreadystatechange = listLocs;
+
+          loc_q_url = getQueryHref(capsJSON.data_queries["locations"]);
+          if (base_server_url) {
+            loc_q_url = base_server_url + loc_q_url + "?f=application/json"
+          }
+          //locRequest.open('GET', getQueryHref(capsJSON.data_queries["locations"]));
+          locRequest.open('GET', loc_q_url);
+          locRequest.send();
+      } else {
+          newHTML += createFormGroup('coords', 'Coordinates', 'text', 3, 9, "coords");
+      }
+      newHTML += "</div>"
+      form_block = document.getElementById('formfields')
+      if (document.getElementById("qlist").value != "items") {
+          newHTML += '<div class="bordered" id="pnames" >';
+          fp = ""
+          for (let p in capsJSON.parameter_names) {
+              fp = p
+              newHTML += createFormGroup(p, p.replace("_", " "), "checkbox", 8, 4, "parameter-name");
+          }
+          newHTML += '</div>';
+      }
+      let pExtent = capsJSON.extent;
+
+      if ((pExtent.temporal !== undefined) && (! isline)){
+          newHTML += '<div class="bordered" >';
+          newHTML += createTimeGroup(pExtent.temporal.values);
+          newHTML += '</div>';
+
+      }
+      if (document.getElementById("qlist").value == "corridor") {
+        newHTML += createFormGroup('corridor-width', 'Corridor Width', 'number', 3, 9, "corridor-width");
+        newHTML += createFormGroup('width-units', 'Corridor Width Units', 'text', 3, 9, "width-units");
+        newHTML += createFormGroup('corridor-height', 'Corridor Height', 'number', 3, 9, "corridor-height");
+        newHTML += createFormGroup('height-units', 'Corridor Height Units', 'text', 3, 9, "height-units");
+      }
+      if (document.getElementById("qlist").value == "items") {
+          newHTML += '<div class="row"><div class="col-sm-4"><label>Limit</label></div><div class="col-sm-9"><input type="number" id="limit" name="limit" value="10"></div></div>';
+          newHTML += '<div class="row"><div class="col-sm-4"><label>Start</label></div><div class="col-sm-9"><input type="number" id="start" name="start" value="0"></div></div>';
+
+      } else {
+          newHTML += '<div class="row"><div class="col-sm-4"><label for="crs">outputCRS</label></div>';
+          newHTML += '<div class="col-sm-8"><select type="text" id="crs" onchange="recalc_coords()">';
+
+          if (capsJSON.data_queries[document.getElementById('qlist').value].link.variables.crs_details != undefined) {
+              for (let crsLoop = 0; crsLoop < capsJSON.data_queries[document.getElementById('qlist').value].link.variables.crs_details.length; crsLoop++) {
+                  newHTML += "<option value='"+capsJSON.data_queries[document.getElementById('qlist').value].link.variables.crs_details[crsLoop].wkt+"' >" + capsJSON.data_queries[document.getElementById('qlist').value].link.variables.crs_details[crsLoop].crs + "</option>";
+              }
+          } else {
+              for (let crsIdx in capsJSON.crs) {
+                  newHTML += '<option>' + capsJSON.crs[crsIdx] + '</option>';
+              }
+
+          }
+
+          newHTML += '</select></div></div>'
+          if (document.getElementById("qlist").value != "locations") {
+              if ((pExtent.vertical !== undefined) && (pExtent.vertical.values.length > 0) && (! isline)) {
+
+                  newHTML += createListGroup('z-coord', pExtent.vertical.values, "zvals");
+              }
+          }
+          if (capsJSON.data_queries[document.getElementById('qlist').value].link.variables.output_formats != undefined) {
+              outputformats = [];
+              for (lc = 0; lc < capsJSON.data_queries[document.getElementById('qlist').value].link.variables.output_formats.length; lc++) {
+                  outputformats.push(capsJSON.data_queries[document.getElementById('qlist').value].link.variables.output_formats[lc])
+              }
+          } else {
+              if (capsJSON.output_formats == undefined) {
+                  outputformats = ["json"];
+              } else {
+                  outputformats = [];
+                  for (lc = 0; lc < capsJSON.output_formats.length; lc++) {
+                      outputformats.push(capsJSON.output_formats[lc])
+                  }
+              }
+
+          }
+          newHTML += createSelectGroup('outputformat', outputformats);
+      }
+      form_block.innerHTML = newHTML;
+      if (capsJSON.data_queries[document.getElementById('qlist').value].link.variables.default_output_format != undefined) {
+
+          document.getElementById("outputformat").value = capsJSON.data_queries[document.getElementById('qlist').value].link.variables.default_output_format;
+      }
+      if (document.getElementById("qlist").value != "locations") {
+          document.getElementById("loading_wheel").style.cssText = "display:none;";
+      }
+
+  }
+
+  makeRequest();
+
+  function recalc_coords() {
+      if (document.getElementById("coords").value.length > 0) {
+          let swkt = new Wkt.Wkt();
+          let newwkt;
+          if ((document.getElementById("coords").value.indexOf("Z") > -1) || (document.getElementById("coords").value.indexOf("M") > -1)) {
+
+              let parts = document.getElementById("coords").value.split("(");
+              let coordvs = parts[1].replace(")",[]).split(",");
+              let WKTtype = parts[0];
+              let coretype = parts[0].toUpperCase().replace("Z","").replace("M","");
+              let xydims = [];
+              let otherdims = [];
+
+              for (let cIndx=0; cIndx < coordvs.length; cIndx++) {
+                  let dimvs = coordvs[cIndx].split(" ");
+                  xydim = "";
+                  otherdim = "";
+
+                  for (let dIndx=0;dIndx < dimvs.length;dIndx++) {
+                      if (dIndx < 2) {
+                          xydim += " " + dimvs[dIndx];
+                      }
+                      else {
+                          otherdim += " " + dimvs[dIndx];
+                      }
+                  }
+                  xydims.push(xydim.trim());
+                  otherdims.push(otherdim.trim());
+              }
+              let wktstr = coretype + "(" + xydims.join(",") + ")"
+              swkt = reproject_coords(swkt.read(wktstr),document.getElementById("coords").crs)
+              let newcrds = []
+              for (let idx=0;idx < swkt.components.length;idx++) {
+                  newcrds.push(((swkt.components[idx].x) + " " + (swkt.components[idx].y) + " " + otherdims[idx]).trim());
+              }
+              newwkt = WKTtype + "(" + newcrds.join(",") + ")";
+          } else {
+              swkt = reproject_coords(swkt.read(document.getElementById("coords").value),document.getElementById("coords").crs)
+              newwkt = swkt.write();
+          }
+          document.getElementById("coords").value = newwkt;
+          document.getElementById("coords").crs = document.getElementById('crs').value;
+      }
+  }
+
+  function getQueryHref(query) {
+
+      href = ""
+
+      if (query.link.templated) {
+          href = query.link.href.split("?")[0];
+      } else {
+          href = query.link.href;
+      }
+      return href
+
+  }
+
+  function listLocs() {
+      if (locRequest.readyState === XMLHttpRequest.DONE) {
+          if ((locRequest.status === 200) || (locRequest.status === 307)) {
+              locsJSON = JSON.parse(locRequest.responseText);
+              locIds = []
+              for (let lIdx=0;lIdx<locsJSON.features.length;lIdx++) {
+                  locIds.push(locsJSON.features[lIdx].id)
+              }
+              document.getElementById("locdsc").innerHTML = createSelectGroup('locations', locIds);
+              document.getElementById("loading_wheel").style.cssText = "display:none;";
+
+          } else if (locRequest.status < 400) {
+              console.log('status:' + locRequest.status)
+          } else {
+              document.getElementById("loading_wheel").style.cssText = "display:none;";
+              alert('There was a problem with retrieving the list of locations.');
+          }
+      }
+
+  }
+
+
+
+  function escapexml(xmltext) {
+      return String(xmltext).replace(/(['"<>&'])(\w+;)?/g, (match, char, escaped) => {
+          if (escaped)
+              return match
+
+          switch (char) {
+              case '\'': return '&quot;'
+              case '"': return '&apos;'
+              case '<': return '&lt;'
+              case '>': return '&gt;'
+              case '&': return '&amp;'
+          }
+      })
+  }
+  function renderOther() {
+
+      fetch(document.getElementById("qurl").value)
+          .then(function (response) {
+              return response.text()
+          }).then(function (output) {
+              language = "language-json";
+              if ((document.getElementById("outputformat").value.toLowerCase() == "iwxxm") || (document.getElementById("outputformat").value.toLowerCase() == "cap")) {
+                  language = "language-xml";
+                  output = escapexml(output);
+              }
+              document.getElementById("loading_wheel").style.cssText = "display:none;";
+              document.getElementById('rcode').innerHTML = "<pre class=\"prettyprint\"><code class=" + language + ">" + output + "</code></pre>"
+
+              document.getElementById("modal-control").checked = true;
+              PR.prettyPrint();
+              document.getElementsByTagName("code")[0].style["font-size"] = "large";
+          });
+  }
+
+
+  function saveData(waittime, theUrl) {
+      let start = Date.now();
+      return new Promise(waitForData);
+      function waitForData(resolve, reject) {
+          if (waittime && (Date.now() - start) >= waittime) {
+              window.open(theUrl, "Download data");
+          }
+          else {
+
+              alert((waittime / 1000) + " seconds until data ready");
+              setTimeout(waitForData.bind(this, resolve, reject), waittime);
+          }
+      }
+  }
+
+  console.log("center=")
+  console.log(map_center)
+  console.log("zoom=")
+  console.log(zoom_level)
+  console.log("document.getElementById('map')=")
+  console.log(document.getElementById("map"))
+  let map = L.map("map", { center: map_center, zoom: zoom_level })
+  // var map = L.map('map').setView([50, 9], 10);
+  let layer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' });
+  let drawnItems = L.featureGroup().addTo(map);
+  let wkt = new Wkt.Wkt();
+  let drawing = false;
+
+  layer.addTo(map);
+  drawnItems.addTo(map);
+  console.log("Map added....")
+  console.log(map)
+
+  map.on(L.Draw.Event.DRAWSTART, function (event) {
+      drawnItems.clearLayers();
+      drawing = true;
+  });
+  let validQ = true;
+
+  map.on(L.Draw.Event.CREATED, function (event) {
+      let layer = event.layer;
+      let type = event.layerType
+      drawing = false;
+
+      if (type === 'marker') {
+          // Do marker specific actions
+          layer.setLatLng(layer.getLatLng().wrap())
+          coords = wkt.read(JSON.stringify(layer.toGeoJSON()));
+          coords = reproject_coords(coords,'WGS84');
+      }
+      else if (type === 'polygon') {
+          removeLayers();
+          validQ = true;
+          coords = wkt.read(JSON.stringify(wrapLatLons(layer).toGeoJSON()));
+          area = L.GeometryUtil.geodesicArea(layer.getLatLngs()[0])
+
+          if ((area > 3100000000000) && ((urlparts[urllen - 3]).indexOf("gfs") > -1)) {
+              alert("Sorry this the selected area is too large (this is to protect the third party datasource), please select an area of approximatley half the size of the US or less")
+              validQ = false;
+          }
+          coords = reproject_coords(coords,'WGS84');
+      }
+      else if (type === 'rectangle') {
+          removeLayers();
+          validQ = true;
+          coords = wkt.read(JSON.stringify(wrapLatLons(layer).toGeoJSON()));
+          area = L.GeometryUtil.geodesicArea(layer.getLatLngs()[0])
+
+          if ((area > 3100000000000) && ((urlparts[urllen - 3]).indexOf("gfs") > -1)) {
+              alert("Sorry this the selected area is too large (this is to protect the third party datasource), please select an area of approximatley half the size of the US or less")
+              validQ = false;
+          }
+          if (document.getElementById("qlist").value != "items") {
+              coords = reproject_coords(coords,'WGS84');
+          }
+      }
+      else if (type === 'polyline') {
+          removeLayers();
+          //validQ = true;
+          let drawJSON = layer.toGeoJSON();
+          // let total_distance = 0;
+          // for (let p = 0; p < drawJSON.geometry.coordinates.length - 2; p++) {
+          //     total_distance += map.distance(L.latLng(drawJSON.geometry.coordinates[p]), L.latLng(drawJSON.geometry.coordinates[p + 1]))
+          // }
+          // //create point for every km
+          // let numpoints = Math.round(total_distance / 1000)
+          // drawJSON.geometry.coordinates = interpolateLineRange(drawJSON.geometry.coordinates, numpoints);
+          // for (let p = 0; p < drawJSON.geometry.coordinates.length; p++) {
+          //     drawJSON.geometry.coordinates[p] = [parseFloat(drawJSON.geometry.coordinates[p][0].toFixed(3)), parseFloat(drawJSON.geometry.coordinates[p][1].toFixed(3))]
+          // }
+
+          coords = wkt.read(JSON.stringify(drawJSON));
+          if ((collectionJSON.collections[capsIndx].extent.temporal != undefined) || (collectionJSON.collections[capsIndx].extent.vertical != undefined)) {
+
+              show_traj(coords);
+
+          }
+          drawnItems.addLayer(layer);
+
+      }
+
+
+
+
+      if (validQ) {
+          if (type === 'rectangle') {
+              let minx = +Infinity;
+              let maxx = -Infinity;
+              let miny = +Infinity;
+              let maxy = -Infinity;
+              for (let pIdx=0;pIdx < coords.components[0].length;pIdx++) {
+                  if (coords.components[0][pIdx].x > maxx) {
+                      maxx = coords.components[0][pIdx].x;
+                  }
+                  if (coords.components[0][pIdx].x < minx) {
+                      minx = coords.components[0][pIdx].x;
+                  }
+                  if (coords.components[0][pIdx].y > maxy) {
+                      maxy = coords.components[0][pIdx].y;
+                  }
+                  if (coords.components[0][pIdx].y < miny) {
+                      miny = coords.components[0][pIdx].y;
+                  }
+              }
+             //document.getElementById('coords').value = "bbox=" + String(minx) + " " + String(miny) + "," + String(maxx) + " " + String(maxy);
+             document.getElementById('coords').value = "bbox=" + String(minx) + "," + String(miny) + "," + String(maxx) + "," + String(maxy);
+          } else {
+              document.getElementById('coords').value = coords.write();
+              document.getElementById('coords').crs = document.getElementById('crs').value
+          }
+          drawnItems.addLayer(layer);
+
+      }
+  });
+
+
+  let layerControl = L.control.layers([], [], { collapsed: false }).addTo(map)
+
+  // We use ParameterSync here so that multiple coverage layers that display the same
+  // parameter get synchronized in terms of their palette and extent.
+  // It also allows us to display a single legend only.
+  // Layers that don't have a single parameter get ignored automatically.
+  let paramSync = new C.ParameterSync({
+      syncProperties: {
+          palette: (p1, p2) => p1,
+          paletteExtent: (e1, e2) => e1 && e2 ? [Math.min(e1[0], e2[0]), Math.max(e1[1], e2[1])] : null
+      }
+  }).on('parameterAdd', e => {
+      // The virtual sync layer proxies the synced palette, paletteExtent, and parameter.
+      // The sync layer will fire a 'remove' event if all real layers for that parameter were removed.
+      let layer = e.syncLayer
+      if (layer.palette) {
+          C.legend(layer, {
+              position: 'bottomright'
+          }).addTo(map)
+      }
+  })
+
+  let layersInControl = new Set()
+  let coverageLayersOnMap = new Set()
+
+  function removeLayers() {
+      for (let layer of layersInControl) {
+          layerControl.removeLayer(layer)
+          if (map.hasLayer(layer)) {
+              // FIXME leaflet's internal state breaks if layers or controls throw exceptions in onAdd()
+              // -> could be prevented by linting CovJSON before-hand
+              try {
+                  map.removeLayer(layer)
+              } catch (e) { }
+          }
+      }
+      layersInControl = new Set()
+  }
+
+  // Wire up coverage value popup
+  let valuePopup = new C.DraggableValuePopup({
+      className: 'leaflet-popup-draggable',
+      layers: [...coverageLayersOnMap]
+  })
+  function zoomToLayers(layers) {
+      let bnds = layers.map(l => l.getBounds())
+      let lproj = layers.map(l => l.domain.referencing[0].system.id)
+      let opts;
+      let bounds;
+      L.latLngBounds([L.latLng(bnds[0].getWest(), bnds[0].getSouth()), L.latLng(bnds[0].getEast(), bnds[0].getNorth())])
+
+      let parts = lproj[0].split("/")
+
+          let projdef = "";
+          if ((lproj[0].toLowerCase().indexOf("geogcs") > -1) || (lproj[0].toLowerCase().indexOf("projcs") >-1)) {
+              projdef = lproj[0]
+          }
+          else if ((parts[0].toLowerCase().indexOf("geogcs") > -1) || (parts[0].toLowerCase().indexOf("projcs") >-1)) {
+              projdef = parts[0]
+          }
+          else if (parts[parts.length - 1] == "CRS84") {
+              projdef = "WGS84";
+          } else if (lproj[0].indexOf("4979") > -1) {
+              projdef = "EPSG:4326";
+          } else {
+              projdef = parts[parts.length - 3] + ":" + parts[parts.length - 1];
+          }
+          prjval = proj4(projdef);
+          let c1 = prjval.inverse([bnds[0].getWest(), bnds[0].getSouth()]);
+          let c2 = prjval.inverse([bnds[0].getEast(), bnds[0].getNorth()]);
+          if (prjval.oProj.axis == "neu") {
+              bounds = [[c1[1], c1[0]], [c2[1], c2[0]]];
+          }
+      else {
+
+          bounds = [[bnds[0].getSouth(), bnds[0].getWest()], [bnds[0].getNorth(), bnds[0].getEast()]];
+
+      }
+      if ((bounds[0][0] === bounds[1][0]) && (bounds[0][1] === bounds[1][1])) {
+          opts = { maxZoom: 5 }
+      }
+      map.fitBounds(bounds, opts);
+  }
+
+  function isVerticalProfile(cov) {
+      return cov.domainType === C.COVJSON_VERTICALPROFILE
+  }
+
+  function isTimeSeries(cov) {
+      return cov.domainType === C.COVJSON_POINTSERIES || cov.domainType === C.COVJSON_POLYGONSERIES
+  }
+
+  function createLayer(cov, opts) {
+      let layer = C.dataLayer(cov, opts).on('afterAdd', e => {
+          let covLayer = e.target
+          console.log('layer added:', covLayer)
+
+          // This registers the layer with the sync manager.
+          // By doing that, the palette and extent get unified (if existing)
+          // and an event gets fired if a new parameter was added.
+          // See the code above where ParameterSync gets instantiated.
+          paramSync.addLayer(covLayer)
+          if (!cov.coverages) {
+              if (covLayer.time) {
+                  new C.TimeAxis(covLayer).addTo(map)
+              }
+              if (covLayer.vertical) {
+                  new C.VerticalAxis(covLayer).addTo(map)
+              }
+          }
+      }).on('dataLoad', () => map.fire('dataload'))
+          .on('dataLoading', () => map.fire('dataloading'))
+      layer.on('axisChange', () => {
+          layer.paletteExtent = 'subset'
+      })
+
+      if (cov.coverages) {
+          if (isVerticalProfile(cov)) {
+              layer.bindPopupEach(coverage => new C.VerticalProfilePlot(coverage))
+          } else if (isTimeSeries(cov)) {
+              layer.bindPopupEach(coverage => new C.TimeSeriesPlot(coverage))
+          }
+      } else {
+          if (isVerticalProfile(cov)) {
+              layer.bindPopup(new C.VerticalProfilePlot(cov))
+          } else if (isTimeSeries(cov)) {
+              let hasNum = false;
+              for (rv in cov._covjson.ranges) {
+                  if (cov._covjson.ranges[rv].dataType.toLowerCase() != "string") {
+                      hasNum = true;
+                  }
+              }
+              if (hasNum) {
+                  layer.bindPopup(new C.TimeSeriesPlot(cov));
+              } else {
+                  let tval = "";
+                  if (cov._covjson.ranges[rv]['axisNames'].indexOf('t') > -1) {
+                      tval = cov._covjson.domain.axes['t'].values[0] + " : ";
+                  }
+                  layer.bindPopup(tval + cov._covjson.ranges[rv].values[0]);
+              }
+          }
+      }
+
+      return layer
+  }
+
+  function wrapLatLons(inLayer) {
+      let lls = inLayer.getLatLngs()[0];
+      for (lLoop = 0; lLoop < lls.length; lLoop++) {
+          lls[lLoop] = lls[lLoop].wrap();
+      }
+      return inLayer.setLatLngs([lls]);
+  }
+
+  // click event needed for Grid layer (can't use bindPopup there)
+  map.on('singleclick', e => {
+      if (! drawing) {
+          valuePopup.setLatLng(e.latlng).openOn(map)
+      }
+  })
+
+  map.on('covlayercreate', e => {
+      // some layers already have a plot popup bound to it, ignore those
+      if (!e.layer.getPopup()) {
+          e.layer.bindPopup(valuePopup)
+      }
+  })
+  map.on('covlayeradd', e => {
+      valuePopup.addCoverageLayer(e.layer)
+  })
+  map.on('covlayerremove', e => {
+      valuePopup.removeCoverageLayer(e.layer)
+  })
+
+  function show_traj(incrds) {
+
+      let lcrds = reproject_coords(incrds,'WGS84');
+
+      let tjc = '<col width="0*"><col width="0*">';
+      let tjh = '<th>X</th><th>Y</th>';
+      if (document.getElementById('starttime') != undefined) {
+          tjc +='<col width="0*">';
+          tjh += '<th>T</th>';
+      }
+
+      let zvHtml = "";
+      let tjb = ""
+      if (collectionJSON.collections[capsIndx].extent.vertical != undefined) {
+          let zvs = collectionJSON.collections[capsIndx].extent.vertical.values;
+
+          for (let zIdx=0;zIdx < zvs.length;zIdx++){
+              zvHtml += '<option class="doc">'+ zvs[zIdx] +'</option>'
+          }
+      }
+      let topts =""
+      if (collectionJSON.collections[capsIndx].extent.temporal != undefined) {
+
+          let times = []
+
+          for (let grp in collectionJSON.collections[capsIndx].extent.temporal.values) {
+              if (Array.isArray(collectionJSON.collections[capsIndx].extent.temporal.values[grp])) {
+                  for (let tvals in collectionJSON.collections[capsIndx].extent.temporal.values[grp]) {
+                      times = times.concat(parse_time_string(collectionJSON.collections[capsIndx].extent.temporal.values[grp][tvals]))
+                  }
+              } else {
+                  times = times.concat(parse_time_string(collectionJSON.collections[capsIndx].extent.temporal.values[grp]));
+              }
+          }
+
+          if (collectionJSON.collections[capsIndx].extent.temporal != undefined) {
+              for (let tIndx=0;tIndx < times.length; tIndx++) {
+                  topts += '<option>'+times[tIndx]+'</option>';
+              }
+          }
+      }
+
+      for (let cdIdx=0; cdIdx < lcrds.components.length; cdIdx++) {
+
+          tjb += '<tr>';
+          tjb += '<td data-label="x">'+ lcrds.components[cdIdx].x + '</td>';
+          tjb += '<td data-label="y">'+ lcrds.components[cdIdx].y + '</td>';
+          if (topts.length > 0) {
+              tjb += '<td data-label="t"><select class="doc">'+topts+'</select></td>';
+          }
+          if (zvHtml.length > 0) {
+              tjb += '<td data-label="z"><select class="doc">'+zvHtml+'</select></td>';
+          }
+          tjb += '</tr>';
+      }
+
+      if (zvHtml.length > 0) {
+          tjc +='<col width="0*">';
+          tjh += '<th>Z</th>';
+      }
+      document.getElementById('tjcols').innerHTML = tjc;
+      document.getElementById('tjhead').innerHTML = tjh;
+      document.getElementById('tjbdy').innerHTML = tjb;
+      document.getElementById("traj_edit").checked = true;
+  }
+
+  function save_traj() {
+      let trows = document.getElementsByTagName("tr");
+      let coord_vals = [];
+      for (let rw=0; rw < trows.length;rw++) {
+          let cols = trows[rw].getElementsByTagName("td");
+          let coord_val = {}
+          for (let cl=0; cl < cols.length;cl++) {
+
+              let rattr = cols[cl].getAttribute("data-label");
+              if ((rattr == "x") || (rattr == "y")) {
+                  coord_val[cols[cl].getAttribute("data-label")] = (parseFloat(cols[cl].innerHTML)).toFixed(3);
+              } else {
+
+                  let cv = cols[cl].getElementsByTagName("select")[0];
+                  if (rattr == "t") {
+                      coord_val[cols[cl].getAttribute("data-label")] = new Date(cv.item(cv.selectedIndex).innerText).getTime()/1000;
+                  } else if (rattr == "z") {
+                      coord_val[cols[cl].getAttribute("data-label")] = cv.item(cv.selectedIndex).innerText;
+                  }
+              }
+
+          }
+          if (coord_val.x != undefined) {
+              coord_vals.push(coord_val);
+          }
+      }
+      let wktstr = "LINESTRING(";
+      if (coord_vals[0].z != undefined) {
+          if (coord_vals[0].t != undefined) {
+              wktstr = "LINESTRINGZM("
+          } else {
+              wktstr = "LINESTRINGZ("
+          }
+      } else if (coord_vals[0].t != undefined) {
+          wktstr = "LINESTRINGM("
+      }
+      for (let cIdx=0;cIdx < coord_vals.length;cIdx++) {
+          if (wktstr.substring(wktstr.length - 1) != "(") {
+              wktstr += ",";
+          }
+          wktstr += coord_vals[cIdx].x;
+          wktstr += " ";
+          wktstr += coord_vals[cIdx].y;
+          wktstr += " ";
+          if (coord_vals[0].z != undefined) {
+              wktstr += coord_vals[cIdx].z;
+              wktstr += " ";
+          }
+          if (coord_vals[0].t != undefined) {
+              wktstr += coord_vals[cIdx].t;
+          }
+          wktstr = wktstr.trim();
+      }
+      wktstr += ")";
+      document.getElementById("coords").value = wktstr;
+      document.getElementById("traj_edit").checked = false;
+
+  }
+
+  function reproject_coords(crds, firstProjection) {
+
+      let secondProjection = document.getElementById('crs').value;
+      let transfrm = proj4(firstProjection,secondProjection)
+
+      if (crds.components[0][0] == undefined)
+      {
+          for (let idx=0;idx < crds.components.length;idx++) {
+              reqproj = proj4(firstProjection,secondProjection,[crds.components[idx].x,crds.components[idx].y]);
+              crds.components[idx].x = reqproj[0].toFixed(3)
+              crds.components[idx].y = reqproj[1].toFixed(3)
+          }
+      } else {
+          for (let idx=0;idx < crds.components[0].length;idx++) {
+              reqproj = transfrm.forward([crds.components[0][idx].x,crds.components[0][idx].y],false);
+
+              crds.components[0][idx].x = reqproj[0].toFixed(3)
+              crds.components[0][idx].y = reqproj[1].toFixed(3)
+          }
+
+      }
+      return crds
+  }
+
+  function get_coveragejson_data(query_url) {
+      console.log("query_url=");
+      console.log(query_url);
+      fetch(query_url)
+          .then(function (response) {
+              if (response.status == 202) {
+                  let data_url = response.url;
+                  response.json().then(function (output) {
+                      document.getElementById("loading_wheel").style.cssText = "display:none;";
+                      waittime = parseInt(output.split("[")[1].split("]")[0].trim()) * 1000;
+                      saveData(waittime, data_url);
+                  });
+              } else if (response.status > 399) {
+                  document.getElementById("loading_wheel").style.cssText = "display:none;";
+                  try {
+                      response.json().then(function (output) {
+                          alert(output.Error)
+                  });
+                  } catch (err) {
+                      alert("Error in query, API docs can be found here: " + window.location.href.replace("/static/html/query.html","/api"));
+                  }
+
+              } else {
+                  response.json().then(function (output) {
+                  document.getElementById('dvcode').innerHTML = "<pre id=\"precode\" class=\"prettyprint\"><code class=\"language-json\">" + JSON.stringify(output,null,1) + "</code></pre>"
+                  if (document.getElementById("outputformat").value.toLowerCase() != "coveragejson") {
+                      document.getElementById("loading_wheel").style.cssText = "display:none;";
+                      document.getElementById("modal-control").checked = true;
+                  } else {
+
+                      CovJSON.read(output).then(function (cov) {
+                      options = {}
+                      console.log('Coverage loaded: ', cov)
+                      document.getElementById("loading_wheel").style.cssText = "display:none;";
+                      // add each parameter as a layer
+                      let firstLayer;
+
+                      let layerClazz = C.dataLayerClass(cov)
+
+                      if (cov.coverages && !layerClazz) {
+                          // generic collection
+                          if (!cov.parameters) {
+                              errmsg = "No data found"
+                              throw new Error('Only coverage collections with a "parameters" property are supported')
+                          }
+
+                          for (let key of cov.parameters.keys()) {
+                              let layers = cov.coverages
+                                  .filter(coverage => coverage.parameters.has(key))
+                                  .map(coverage => createLayer(coverage, { keys: [key] }))
+                              layers.forEach(covlayer => map.fire('covlayercreate', { layer: covlayer }))
+                              let layer = L.layerGroup(layers)
+                              layersInControl.add(layer)
+
+                              layerControl.addOverlay(layer, key)
+                              if (!firstLayer) {
+                                  firstLayer = layer
+
+                                  // the following piece of code should be easier
+                                  // TODO extend layer group class in leaflet-coverage (like PointCollection) to provide single 'add' event
+                                  let addCount = 0
+                                  for (let l of layers) {
+                                      l.on('afterAdd', () => {
+                                          coverageLayersOnMap.add(l)
+                                          ++addCount
+                                          if (addCount === layers.length) {
+                                              zoomToLayers(layers)
+                                              // FIXME is this the right place?? define event semantics!
+                                              map.fire('covlayeradd', { layer: l })
+                                          }
+                                      })
+                                  }
+                              }
+                          }
+                      } else if (layerClazz) {
+                          // single coverage or a coverage collection of a specific domain type
+
+                          for (let key of cov.parameters.keys()) {
+                              let opts = { keys: [key] }
+                              let layer = createLayer(cov, opts)
+
+                              map.fire('covlayercreate', { layer })
+                              layersInControl.add(layer)
+
+                              layerControl.addOverlay(layer, key)
+                              if (!firstLayer) {
+                                  firstLayer = layer
+                                  layer.on('afterAdd', () => {
+                                      zoomToLayers([layer])
+                                      if (!cov.coverages) {
+                                          if (isVerticalProfile(cov) || isTimeSeries(cov)) {
+                                              layer.openPopup()
+                                          }
+                                      }
+                                  })
+                              }
+                              layer.on('afterAdd', () => {
+
+                                  coverageLayersOnMap.add(layer)
+                                  map.fire('covlayeradd', { layer })
+                              }).on('remove', () => {
+                                  coverageLayersOnMap.delete(layer)
+                                  map.fire('covlayerremove', { layer })
+                              })
+                          }
+                      } else {
+                          throw new Error('unsupported type')
+                      }
+                      if (options.display && firstLayer) {
+                          map.addLayer(firstLayer)
+                      }
+                  });
+                  }
+              }).catch(function (error) {
+                  document.getElementById("loading_wheel").style.cssText = "display:none;";
+                  alert('error loading data: ' + error.message)
+                  console.log('There has been a problem with your fetch operation: ', error.message);
+              });
+          }});
+
+  }
+</script>
 {% endblock %}

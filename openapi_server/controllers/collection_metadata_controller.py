@@ -61,7 +61,12 @@ async def list_collection_data_locations(request: web.Request, collection_id, bb
     """
     # bbox = .from_dict(bbox)
     print("list_collection_data_locations")
-    return web.Response(status=200)
+    print("bbox=", bbox)
+    ocmeta = OgcApiCollectionMetadata()
+    headers, status, content = ocmeta.list_collection_data_locations(
+        request, collection_id, bbox, datetime, limit)
+#    return web.Response(text="landing page", status=200)
+    return web.Response(body=content, status=status, headers=headers)
 
 
 async def list_data_items(request: web.Request, collection_id, bbox=None, datetime=None, limit=None) -> web.Response:

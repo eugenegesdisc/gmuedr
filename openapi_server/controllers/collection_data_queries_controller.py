@@ -27,10 +27,16 @@ async def get_collection_data_for_location(request: web.Request, collection_id, 
     :type f: str
 
     """
-    return web.Response(status=200)
+    ocdata = OgcApiCollectionData()
+    headers, status, content = ocdata.get_collection_data_for_location(
+        request, collection_id, location_id, datetime,
+        crs, f)
+    return web.Response(body=content, status=status, headers=headers)
+
+# async def get_data_for_area(request: web.Request, collection_id, coords, z=None, datetime=None, parameter_name=None, crs=None, resolution_x=None, resolution_y=None, f=None) -> web.Response:
 
 
-async def get_data_for_area(request: web.Request, collection_id, coords, z=None, datetime=None, parameter_name=None, crs=None, resolution_x=None, resolution_y=None, f=None) -> web.Response:
+async def get_data_for_area(request: web.Request, collection_id, coords=None, z=None, datetime=None, parameter_name=None, crs=None, resolution_x=None, resolution_y=None, f=None) -> web.Response:
     """Query end point for area queries  of collection {collectionId} defined by a polygon
 
     Return the data values for the data area defined by the query parameters
@@ -64,8 +70,10 @@ async def get_data_for_area(request: web.Request, collection_id, coords, z=None,
         crs, resolution_x, resolution_y, f)
     return web.Response(body=content, status=status, headers=headers)
 
+# async def get_data_for_corridor(request: web.Request, collection_id, coords, corridor_width, width_units, corridor_height, height_units, z=None, datetime=None, parameter_name=None, resolution_x=None, resolution_z=None, crs=None, f=None) -> web.Response:
 
-async def get_data_for_corridor(request: web.Request, collection_id, coords, corridor_width, width_units, corridor_height, height_units, z=None, datetime=None, parameter_name=None, resolution_x=None, resolution_z=None, crs=None, f=None) -> web.Response:
+
+async def get_data_for_corridor(request: web.Request, collection_id, coords=None, corridor_width=None, width_units=None, corridor_height=None, height_units=None, z=None, datetime=None, parameter_name=None, resolution_x=None, resolution_z=None, crs=None, f=None) -> web.Response:
     """Query end point for Corridor queries  of collection {collectionId} defined by a polygon
 
     Return the data values for the Corridor defined by the query parameters
@@ -100,13 +108,17 @@ async def get_data_for_corridor(request: web.Request, collection_id, coords, cor
     """
 #    resolution_x = .from_dict(resolution_x)
 #    resolution_z = .from_dict(resolution_z)
-    return web.Response(status=200)
-#    ocdata = OgcApiCollectionData()
-#    headers, status, content = ocdata.get_data_for_corridor(
-#        request, collection_id, collection_id, coords, corridor_width,
-#        width_units, corridor_height, height_units, z, datetime,
-#        parameter_name, resolution_x, resolution_z, crs, f)
-#    return web.Response(body=content, status=status, headers=headers)
+#    return web.Response(status=200)
+    print("z=", z)
+    print("datetime=", datetime)
+    print("resolution_x=", resolution_x)
+    print("resolution_z=", resolution_z)
+    ocdata = OgcApiCollectionData()
+    headers, status, content = ocdata.get_data_for_corridor(
+        request, collection_id, coords, corridor_width,
+        width_units, corridor_height, height_units, z, datetime,
+        parameter_name, resolution_x, resolution_z, crs, f)
+    return web.Response(body=content, status=status, headers=headers)
 
 
 async def get_data_for_cube(request: web.Request, collection_id, bbox=None, z=None, datetime=None, parameter_name=None, crs=None, f=None) -> web.Response:
@@ -131,7 +143,11 @@ async def get_data_for_cube(request: web.Request, collection_id, bbox=None, z=No
 
     """
 #    bbox = .from_dict(bbox)
-    return web.Response(status=200)
+#    return web.Response(status=200)
+    ocdata = OgcApiCollectionData()
+    headers, status, content = ocdata.get_data_for_cube(
+        request, collection_id, bbox, z, datetime, parameter_name, crs, f)
+    return web.Response(body=content, status=status, headers=headers)
 
 
 async def get_data_for_item(request: web.Request, collection_id, item_id) -> web.Response:
@@ -150,8 +166,10 @@ async def get_data_for_item(request: web.Request, collection_id, item_id) -> web
         request, collection_id, item_id)
     return web.Response(body=content, status=status, headers=headers)
 
+# async def get_data_for_point(request: web.Request, collection_id, coords, z=None, datetime=None, parameter_name=None, crs=None, f=None) -> web.Response:
 
-async def get_data_for_point(request: web.Request, collection_id, coords, z=None, datetime=None, parameter_name=None, crs=None, f=None) -> web.Response:
+
+async def get_data_for_point(request: web.Request, collection_id, coords=None, z=None, datetime=None, parameter_name=None, crs=None, f=None) -> web.Response:
     """Query end point for position queries  of collection {collectionId}
 
     Query end point for position queries
@@ -178,8 +196,10 @@ async def get_data_for_point(request: web.Request, collection_id, coords, z=None
             datetime, parameter_name, crs, f)
     return web.Response(body=content, status=status, headers=headers)
 
+# async def get_data_for_radius(request: web.Request, collection_id, coords, within, within_units, z=None, datetime=None, parameter_name=None, crs=None, f=None) -> web.Response:
 
-async def get_data_for_radius(request: web.Request, collection_id, coords, within, within_units, z=None, datetime=None, parameter_name=None, crs=None, f=None) -> web.Response:
+
+async def get_data_for_radius(request: web.Request, collection_id, coords=None, within=None, within_units=None, z=None, datetime=None, parameter_name=None, crs=None, f=None) -> web.Response:
     """Query end point for radius queries  of collection {collectionId}
 
     Query end point for to return values within a defined radius of a point queries
@@ -204,7 +224,11 @@ async def get_data_for_radius(request: web.Request, collection_id, coords, withi
     :type f: str
 
     """
-    return web.Response(status=200)
+    ocdata = OgcApiCollectionData()
+    headers, status, content = ocdata.get_data_for_radius(
+        request, collection_id, coords, within, within_units, z,
+        datetime, parameter_name, crs, f)
+    return web.Response(body=content, status=status, headers=headers)
 
 
 async def get_data_for_trajectory(request: web.Request, collection_id, coords, z=None, datetime=None, parameter_name=None, crs=None, f=None) -> web.Response:
@@ -228,4 +252,7 @@ async def get_data_for_trajectory(request: web.Request, collection_id, coords, z
     :type f: str
 
     """
-    return web.Response(status=200)
+    ocdata = OgcApiCollectionData()
+    headers, status, content = ocdata.get_data_for_trajectory(
+        request, collection_id, coords, z, datetime, parameter_name, crs, f)
+    return web.Response(body=content, status=status, headers=headers)

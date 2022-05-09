@@ -80,12 +80,12 @@ paths:
           - items:
               maxItems: 4
               minItems: 4
-              type: object
+              type: number
             type: array
           - items:
               maxItems: 6
               minItems: 6
-              type: object
+              type: number
             type: array
         style: form
       - description: |-
@@ -292,7 +292,9 @@ paths:
         name: resolution-x
         required: false
         schema:
-          type: object
+          items:
+            type: string
+          type: array
       - description: |
           Defined it the user requires data at a different resolution from the native resolution of the data along the y-axis
 
@@ -305,7 +307,9 @@ paths:
         name: resolution-y
         required: false
         schema:
-          type: object
+          items:
+            type: string
+          type: array
       - description: format to return the data response in
         in: query
         name: f
@@ -323,6 +327,9 @@ paths:
                 $ref: '#/components/schemas/edrFeatureCollectionGeoJSON'
             application/x-netcdf: {}
             text/xml: {}
+            text/html:
+              schema:
+                type: string
           description: Data ranges required to construct valid queries for the choosen
             data collection
         "202":
@@ -547,7 +554,9 @@ paths:
         name: resolution-x
         required: false
         schema:
-          type: object
+          items:
+            type: string
+          type: array
       - description: |
           Defined it the user requires data at a different resolution from the native resolution of the data along the z-axis
 
@@ -560,7 +569,9 @@ paths:
         name: resolution-z
         required: false
         schema:
-          type: object
+          items:
+            type: string
+          type: array
       - description: identifier (id) of the coordinate system to return data in list
           of valid crs identifiers for the chosen collection are defined in the metadata
           responses.  If not supplied the coordinate reference system will default
@@ -588,6 +599,9 @@ paths:
                 $ref: '#/components/schemas/edrFeatureCollectionGeoJSON'
             application/x-netcdf: {}
             text/xml: {}
+            text/html:
+              schema:
+                type: string
           description: Data ranges required to construct valid queries for the choosen
             data collection
         "202":
@@ -673,12 +687,12 @@ paths:
           - items:
               maxItems: 4
               minItems: 4
-              type: object
+              type: number
             type: array
           - items:
               maxItems: 6
               minItems: 6
-              type: object
+              type: number
             type: array
         style: form
       - description: |
@@ -763,6 +777,9 @@ paths:
                 $ref: '#/components/schemas/edrFeatureCollectionGeoJSON'
             application/x-netcdf: {}
             text/xml: {}
+            text/html:
+              schema:
+                type: string
           description: Data ranges required to construct valid queries for the choosen
             data collection
         "202":
@@ -961,7 +978,9 @@ paths:
         name: resolution-x
         required: false
         schema:
-          type: object
+          items:
+            type: string
+          type: array
       - description: |
           Defined it the user requires data at a different resolution from the native resolution of the data along the y-axis
 
@@ -974,7 +993,9 @@ paths:
         name: resolution-y
         required: false
         schema:
-          type: object
+          items:
+            type: string
+          type: array
       - description: identifier (id) of the coordinate system to return data in list
           of valid crs identifiers for the chosen collection are defined in the metadata
           responses.  If not supplied the coordinate reference system will default
@@ -1232,7 +1253,9 @@ paths:
         name: resolution-x
         required: false
         schema:
-          type: object
+          items:
+            type: string
+          type: array
       - description: |
           Defined it the user requires data at a different resolution from the native resolution of the data along the z-axis
 
@@ -1245,7 +1268,9 @@ paths:
         name: resolution-z
         required: false
         schema:
-          type: object
+          items:
+            type: string
+          type: array
       - description: identifier (id) of the coordinate system to return data in list
           of valid crs identifiers for the chosen collection are defined in the metadata
           responses.  If not supplied the coordinate reference system will default
@@ -1364,12 +1389,12 @@ paths:
           - items:
               maxItems: 4
               minItems: 4
-              type: object
+              type: number
             type: array
           - items:
               maxItems: 6
               minItems: 6
-              type: object
+              type: number
             type: array
         style: form
       - description: |
@@ -1545,12 +1570,12 @@ paths:
           - items:
               maxItems: 4
               minItems: 4
-              type: object
+              type: number
             type: array
           - items:
               maxItems: 6
               minItems: 6
-              type: object
+              type: number
             type: array
         style: form
       - description: |-
@@ -2302,12 +2327,12 @@ paths:
           - items:
               maxItems: 4
               minItems: 4
-              type: object
+              type: number
             type: array
           - items:
               maxItems: 6
               minItems: 6
-              type: object
+              type: number
             type: array
         style: form
       - description: |-
@@ -2480,12 +2505,12 @@ paths:
           - items:
               maxItems: 4
               minItems: 4
-              type: object
+              type: number
             type: array
           - items:
               maxItems: 6
               minItems: 6
-              type: object
+              type: number
             type: array
         style: form
       - description: |-
@@ -2521,6 +2546,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/edrFeatureCollectionGeoJSON'
             text/xml: {}
+            text/html:
+              schema:
+                type: string
           description: List of predefined locations available from the collection
         "202":
           description: Data request still being processed
@@ -2613,6 +2641,9 @@ paths:
                 $ref: '#/components/schemas/edrFeatureCollectionGeoJSON'
             application/x-netcdf: {}
             text/xml: {}
+            text/html:
+              schema:
+                type: string
           description: Data returned by querying by location identifier
         "202":
           description: Data request still being processed
@@ -2770,6 +2801,9 @@ paths:
                 $ref: '#/components/schemas/edrFeatureCollectionGeoJSON'
             application/x-netcdf: {}
             text/xml: {}
+            text/html:
+              schema:
+                type: string
           description: Data ranges required to construct valid queries for the choosen
             data collection
         "202":
@@ -2941,6 +2975,9 @@ paths:
                 $ref: '#/components/schemas/edrFeatureCollectionGeoJSON'
             application/x-netcdf: {}
             text/xml: {}
+            text/html:
+              schema:
+                type: string
           description: Data ranges required to construct valid queries for the choosen
             data collection
         "202":
@@ -3126,6 +3163,9 @@ paths:
                 $ref: '#/components/schemas/edrFeatureCollectionGeoJSON'
             application/x-netcdf: {}
             text/xml: {}
+            text/html:
+              schema:
+                type: string
           description: Data ranges required to construct valid queries for the choosen
             data collection
         "202":

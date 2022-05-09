@@ -134,13 +134,51 @@ class OgcApiCollectionDataByPoint(OgcApi):
         translator = LocaleTranslator()
         thecollection_value = translator.get_config_translated(
             the_locale)["resources"][collection_id]
-        the_item_data = self._get_collection_data_by_point(
-            thecollection_value, collection_id, coords, z,
-            datetime, parameter_name, crs, best_match)
+
+        if best_match == "text/html":
+            the_parameters = {
+                    "collection_id": collection_id,
+                    "coords": coords,
+                    "z": z,
+                    "datetime": datetime,
+                    "parameter_name": parameter_name,
+                    "crs": crs,
+                    "f": f
+                }
+            the_item_data = {
+                "parameters": the_parameters,
+                "collection_metadata": thecollection_value
+            }
+        else:
+            the_item_data = self._get_collection_data_by_point(
+                thecollection_value, collection_id, coords, z,
+                datetime, parameter_name, crs, best_match)
+
+        the_final_ret = self._format_get_data_for_point(
+            the_item_data, best_match)
 
         headers = CIMultiDict()
         headers["Content-Type"] = best_match
-        return headers, 200, the_item_data
+        return headers, 200, the_final_ret
+
+    def _format_get_data_for_point(
+            self, thedata, mediatype: str, loc="en_US"):
+        theplugin = self.config.pluginmanager.get_plugin_by_category_media_type(
+            "formatter", "collection_edr_position", mediatype)
+        # Assuming thedata is already in the suitable format
+        if theplugin is None:
+            Logger.warning("No formaater for mediatype={} for {}.".format(
+                mediatype, "collection_edr_position"
+            ))
+            return thedata
+        thewriter = theplugin.cls({})
+        return thewriter.write(
+            options={
+                "config": self.config.get_config(),
+                "openapi": self.config.load_openapi_file(),
+                "locale": loc
+            },
+            data=thedata)
 
     def _get_collection_data_by_point(
             self, collection_spec, collection_id, coords, z=None,

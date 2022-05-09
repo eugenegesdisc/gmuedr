@@ -48,6 +48,17 @@ class OgcApiConfig(object):
                     os.path.realpath(__file__)), os.sep)
         return self.template_path
 
+    def get_data_country_fullpath(self):
+        if not hasattr(self, 'data_country_path'):
+            try:
+                self.data_country_fullpath = self.config[
+                    'server']['data']['country']
+            except:
+                self.data_country_fullpath = '{}{}data{}country.shp'.format(
+                    os.path.dirname(
+                        os.path.realpath(__file__)), os.sep, os.sep)
+        return self.data_country_fullpath
+
     def get_jinja2_template(self, rtemplate, locale=None):
         template_path = self.get_template_path()
         jj2env = Environment(

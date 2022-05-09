@@ -113,10 +113,27 @@ class OgcApiCollectionDataByArea(OgcApi):
         translator = LocaleTranslator()
         thecollection_value = translator.get_config_translated(
             the_locale)["resources"][collection_id]
-        the_ret_data = self._get_collection_data_by_area(
-            thecollection_value, collection_id, coords, z,
-            datetime, parameter_name, crs,
-            resolution_x, resolution_y, best_match)
+        if best_match == "text/html":
+            the_parameters = {
+                    "collection_id": collection_id,
+                    "coords": coords,
+                    "z": z,
+                    "datetime": datetime,
+                    "parameter_name": parameter_name,
+                    "crs": crs,
+                    "resolution_x": resolution_x,
+                    "resolution_y": resolution_y,
+                    "f": f
+                }
+            the_ret_data = {
+                "parameters": the_parameters,
+                "collection_metadata": thecollection_value
+            }
+        else:
+            the_ret_data = self._get_collection_data_by_area(
+                thecollection_value, collection_id, coords, z,
+                datetime, parameter_name, crs,
+                resolution_x, resolution_y, best_match)
         the_final_ret = self._format_get_data_for_area(
             the_ret_data, best_match)
         headers = CIMultiDict()

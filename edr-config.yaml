@@ -22,6 +22,8 @@ server:
     map:
         url: https://tile.openstreetmap.org/{z}/{x}/{y}.png
         attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+    # data:
+      # country: /path/to/data/country.shp
 #    manager:
 #        name: TinyDB
 #        connection: /tmp/pygeoapi-process-manager.db
@@ -962,8 +964,8 @@ resources:
               output_formats:
                 - CoverageJSON
                 - GeoJSON
-                - IWXXM
-              default_output_format: IWXXM
+                - NetCDF
+              default_output_format: CoverageJSON
               crs_details:
                 - crs: CRS84
                   wkt: >-
@@ -985,8 +987,8 @@ resources:
               output_formats:
                 - CoverageJSON
                 - GeoJSON
-                - IWXXM
-              default_output_format: GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
               within_units:
                 - km
                 - miles
@@ -995,9 +997,40 @@ resources:
                   wkt: >-
                     GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
                     84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+        cube:
+          link:
+            href: '/collections/imerggdl_20220301/cube?bbox={bbox_values}'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Cube query
+              description: Cube query
+              query_type: cube
+              bbox_values:
+                description: >-
+                  The bounding box is provided as four or six numbers,
+                  depending on whether the coordinate reference system
+                  includes a vertical axis
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
+              z:
+                description: Define the vertical level to return data from i.e. z=level
+              datetime:
+                description: Either a date-time or an interval, open or closed. Date and time expressions adhere to RFC 3339.
+              parameter-name:
+                description: comma delimited list of parameters to retrieve data for. Valid parameters are listed in the collections metadata
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
         area:
           link:
-            href: '/collections/so2_2021228_01/area?coords={coords}'
+            href: '/collections/imerggdl_20220301/area?coords={coords}'
             hreflang: en
             rel: data
             templated: true
@@ -1012,9 +1045,80 @@ resources:
               output_formats:
                 - CoverageJSON
                 - GeoJSON
-                - BUFR
-                - IWXXM
+                - NetCDF
               default_output_format: CoverageJSON
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+        trajectory:
+          link:
+            href: '/collections/imerggdl_20220301/trajectory?coords={coords}'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Trajectory query
+              description: Trajectory query
+              query_type: trajectory
+              coords:
+                description: 'Well Known Text LINESTRING value i.e. LINESTRING(-2.87 51.14 , -2.98 51.36 ,-3.15 51.03 ,-3.48 50.74 ,-3.36 50.9 )'
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
+              z:
+                description: Define the vertical level to return data from i.e. z=level
+              datetime:
+                description: Either a date-time or an interval, open or closed. Date and time expressions adhere to RFC 3339.
+              parameter-name:
+                description: comma delimited list of parameters to retrieve data for. Valid parameters are listed in the collections metadata
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+        corridor:
+          link:
+            href: '/collections/imerggdl_20220301/corridor?coords={coords}&cooridor-width={cooridor_width}&width-units={width_units}&cooridor-height={cooridor_height}&height-units={height_units}'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Corridor query
+              description: Corridor query
+              query_type: corridor
+              coords:
+                description: 'Well Known Text LINESTRING value i.e. LINESTRING(-2.87 51.14 , -2.98 51.36 ,-3.15 51.03 ,-3.48 50.74 ,-3.36 50.9 )'
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
+              z:
+                description: Define the vertical level to return data from i.e. z=level
+              datetime:
+                description: Either a date-time or an interval, open or closed. Date and time expressions adhere to RFC 3339.
+              parameter-name:
+                description: comma delimited list of parameters to retrieve data for. Valid parameters are listed in the collections metadata
+              corridor_width:
+                description: Define the vertical level to return data from i.e. z=level
+              width_units:
+                - m
+                - km
+                - miles
+              corridor_height:
+                description: Define the vertical level to return data from i.e. z=level
+              height_units:
+                - m
+                - km
+                - miles
+              resolution_x:
+                description: Defined it the user requires data at a different resolution from the native resolution of the data along the x-axis
+              resolution_z:
+                description: Defined it the user requires data at a different resolution from the native resolution of the data along the z-axis
               crs_details:
                 - crs: CRS84
                   wkt: >-
@@ -1022,7 +1126,7 @@ resources:
                     84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
         locations:
           link:
-            href: /collections/so2_2021228_01/locations
+            href: /collections/imerggdl_20220301/locations
             hreflang: en
             rel: data
             templated: false
@@ -1031,9 +1135,10 @@ resources:
               description: Location query
               query_type: locations
               output_formats:
-                - application%2Fgeo%2Bjson
-                - text%2Fhtml
-              default_output_format: application%2Fgeo%2Bjson
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
               crs_details:
                 - crs: CRS84
                   wkt: >-
@@ -1044,148 +1149,119 @@ resources:
       output_formats:
         - CoverageJSON
         - GeoJSON
-        - IWXXM
       parameter_names:
-        Wind Direction:
+        precipitationCal:
           type: Parameter
           description: ''
           unit:
-            label: degree true
+            label: millimeter
             symbol:
-              value: °
-              type: 'http://www.example.org/edr/metadata/units/degree'
+              value: mm
+              type: 'http://www.example.org/edr/metadata/units/millimeter'
           observedProperty:
-            id: 'http://codes.wmo.int/common/quantity-kind/_windDirection'
-            label: Wind Direction
+            id: 'http://codes.wmo.int/common/quantity-kind/_totalPrecipitation'
+            label: Daily accumulated precipitation (combined microwave-IR) estimate
           measurementType:
-            method: mean
-            period: '-PT10M/PT0M'
-        Wind Speed:
+            method: sum
+            period: PT24H
+        precipitationCal_cnt:
           type: Parameter
           description: ''
           unit:
-            label: mph
+            label: count
             symbol:
-              value: mph
-              type: 'http://www.example.org/edr/metadata/units/mph'
+              value: count
+              type: 'http://www.example.org/edr/metadata/units/count'
           observedProperty:
-            id: 'http://codes.wmo.int/common/quantity-kind/_windSpeed'
-            label: Wind Speed
+            id: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGDL_06/precipitationCal_cnt'
+            label: Count of all valid half-hourly precipitationCal retrievals for the day
           measurementType:
-            method: mean
-            period: '-PT10M/PT0M'
-        Wind Gust:
+            method: count
+            period: '-PT24H/PT30M'
+        precipitationCal_cnt_cond:
           type: Parameter
           description: ''
           unit:
-            label: mph
+            label: count
             symbol:
-              value: mph
-              type: 'http://www.example.org/edr/metadata/units/mph'
+              value: count
+              type: 'http://www.example.org/edr/metadata/units/count'
           observedProperty:
-            id: 'http://codes.wmo.int/common/quantity-kind/_maximumWindGustSpeed'
-            label: Wind Gust
+            id: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGDL_06/precipitationCal_cnt_cond'
+            label: Count of valid half-hourly precipitationCal retrievals for the day where precipitation is greater than 0
           measurementType:
-            method: maximum
-            period: '-PT10M/PT0M'
-        Air Temperature:
+            method: count
+            period: '-PT24H/PT30M'
+        HQprecipitation:
           type: Parameter
           description: ''
           unit:
-            label: degC
+            label: millimeter
             symbol:
-              value: °C
-              type: 'http://www.example.org/edr/metadata/units/degC'
+              value: mm
+              type: 'http://www.example.org/edr/metadata/units/millimeter'
           observedProperty:
-            id: 'http://codes.wmo.int/common/quantity-kind/_airTemperature'
-            label: Air Temperature
+            id: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGDL_06/HQprecipitation'
+            label: Daily accumulated High Quality precipitation from all available MW sources
           measurementType:
-            method: instantaneous
-            period: PT0M
-        Weather:
+            method: sum
+            period: PT24H
+        HQprecipitation_cnt:
           type: Parameter
           description: ''
           unit:
-            label: weather
+            label: count
             symbol:
-              value: ''
-              type: 'http://www.example.org/edr/metadata/lookup/mo_dp_weather'
+              value: count
+              type: 'http://www.example.org/edr/metadata/units/count'
           observedProperty:
-            id: 'http://codes.wmo.int/wmdr/ObservedVariableAtmosphere/_266'
-            label: Weather
+            id: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGDL_06/HQprecipitation_cnt'
+            label: Count of all valid half-hourly HQprecipitation retrievals for the day
           measurementType:
-            method: instantaneous
-            period: PT0M
-        Relative Humidity:
+            method: count
+            period: '-PT24H/PT30M'
+        HQprecipitation_cnt_cond:
           type: Parameter
           description: ''
           unit:
-            label: percent
+            label: count
             symbol:
-              value: '%'
-              type: 'http://www.example.org/edr/metadata/units/percent'
+              value: count
+              type: 'http://www.example.org/edr/metadata/units/count'
           observedProperty:
-            id: 'http://codes.wmo.int/bufr4/b/13/_009'
-            label: Relative Humidity
+            id: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGDL_06/HQprecipitation_cnt_cond'
+            label: Count of valid half-hourly HQprecipitation retrievals for the day where precipitation is greater than 0
           measurementType:
-            method: instantaneous
-            period: PT0M
-        Dew point:
+            method: count
+            period: '-PT24H/PT30M'
+        randomError:
           type: Parameter
           description: ''
           unit:
-            label: degC
+            label: millimeter
             symbol:
-              value: °C
-              type: 'http://www.example.org/edr/metadata/units/degC'
+              value: mm
+              type: 'http://www.example.org/edr/metadata/units/millimeter'
           observedProperty:
-            id: 'http://codes.wmo.int/common/quantity-kind/_dewPointTemperature'
-            label: Dew point
+            id: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGDL_06/randomError'
+            label: Daily total error of precipitation estimate
           measurementType:
-            method: instantaneous
-            period: PT0M
-        Pressure:
+            method: sum
+            period: PT24H
+        randomError_cnt:
           type: Parameter
           description: ''
           unit:
-            label: hPa
+            label: count
             symbol:
-              value: hPa
-              type: 'http://www.example.org/edr/metadata/units/hPa'
+              value: count
+              type: 'http://www.example.org/edr/metadata/units/count'
           observedProperty:
-            id: 'http://codes.wmo.int/bufr4/b/10/_051'
-            label: Pressure
+            id: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGDL_06/randomError'
+            label: Count of valid half-hourly randomError retrievals for the day
           measurementType:
-            method: instantaneous
-            period: PT0M
-        Pressure Tendancy:
-          type: Parameter
-          description: ''
-          unit:
-            label: tendency
-            symbol:
-              value: ''
-              type: 'http://www.example.org/edr/metadata/units/hPa'
-          observedProperty:
-            id: 'http://codes.wmo.int/common/quantity-kind/_pressureTendency'
-            label: Pressure Tendancy
-          measurementType:
-            method: instantaneous
-            period: PT0M
-        Visibility:
-          type: Parameter
-          description: ''
-          unit:
-            label: m
-            symbol:
-              value: m
-              type: 'http://www.example.org/edr/metadata/units/m'
-          observedProperty:
-            id: 'http://codes.wmo.int/common/quantity-kind/_horizontalVisibility'
-            label: Visibility
-          measurementType:
-            method: instantaneous
-            period: PT0M
+            method: count
+            period: PT24H
       providers:
         - type: edr
           name: xarray
@@ -1195,9 +1271,21 @@ resources:
             - precipitationCal_cnt
             - precipitationCal_cnt_cond
           id_field: ogc_id
-          locid_field: station
-          title_field: station
-          table: noaa_global_surface
+          loc_shapefile: /wksp/py/ogc/api/edr/edr/aiohttp/data/ne_10m_admin_0_countries/ne_10m_admin_0_countries.shp
+          locid_field: ADM0_A3
+          loctitle_field:
+            - locale: en
+              value: NAME_EN
+            - locale: zh-cn
+              value: NAME_ZH
+            - locale: fr
+              value: NAME_FR
+            - locale: zh-hk
+              value: NAME_ZHT
+            - locale: es
+              value: NAME_ES
+          title_field: ADMIN
+          table: country
           geometry:
             geom_field: the_geom
             geom_format: ewkb

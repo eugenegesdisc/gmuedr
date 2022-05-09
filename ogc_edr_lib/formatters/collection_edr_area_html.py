@@ -44,6 +44,8 @@ class CollectionEdrAreaHtmlFormatter(BaseFormatter):
         thetranslator = LocaleTranslator()
         tconfig = thetranslator.translate_struct(
             options["config"], thelocale, is_config=True)
+        # tconfig["user_options"] = options
+        # print("daaaataaa=", data)
         ret_html = jj2template.render(config=tconfig, data=data)
 
         return ret_html
