@@ -1,0 +1,254 @@
+html,
+body,
+#map,
+#dataviewer,
+.container {
+    width: 100%;
+    height: 100%;
+}
+
+#trow {
+    width: 100%;
+    height: 8%;
+}
+
+#qrow {
+    width: 100%;
+    height: 85%;
+}
+
+#query-view {
+    width: 100%;
+    height: 100%;
+}
+
+#urow {
+    width: 100%;
+    height: 7%;
+}
+
+#frow {
+    width: 100%;
+    height: 90%;
+
+}
+
+
+#coords, #collist, #locations {
+    width:95%;
+}
+
+#brow {
+    width: 100%;
+    height: 10%;
+}
+
+#dcontainer {
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+}
+
+#pnames {
+    overflow-y: scroll;
+    min-height: 20%;
+    max-height: 35%;
+    max-width: 95%;
+}
+
+#zgroup, #cgroup {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    max-width: 95%;
+    font-size: 15px;
+    line-height: 16px;
+    min-height: 20%;
+    height: 80%;
+    width: 95%;    
+    border-collapse: collapse;
+}
+
+#zgroup table, #cgroup table {
+    height:80%;
+}
+
+#chkgroup {
+    overflow-y: scroll;
+    min-height: 20%;
+    height: 95%;
+    width: 95%;
+}
+
+tr {
+    line-height: 0.5;
+}
+
+th {
+    height: 20px;
+}
+
+input {
+    --input-border-color:#000;
+}
+
+.frame::-webkit-scrollbar {
+    -webkit-appearance: none;
+}
+
+.frame::-webkit-scrollbar:vertical {
+    width: 11px;
+}
+
+.frame::-webkit-scrollbar:horizontal {
+    height: 11px;
+}
+
+.frame::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    border: 2px solid white;
+    /* should match background, can't be transparent */
+    background-color: rgba(0, 0, 0, .5);
+}
+
+.test {
+    background-color: #5c8e30;
+}
+.card {
+    width: auto;
+    max-width: 80%;
+    height: 80%;
+    overflow-y: scroll;
+}
+
+.dataview {
+    overflow-y: scroll;
+    overflow-x: auto;
+}
+code {
+    line-height: normal;
+    font-size: 1.4em;
+}
+#dvcode,
+#precode {
+    width: 95%;
+    height: 95%;
+    font: 2em;
+}
+
+#qurl {
+    width:95%;
+}
+
+#queryviewer, #itemsviewer {
+    display: block;
+    height: 95%;
+    overflow-y: scroll;
+}
+
+#expand_query{
+    height:95%;
+    width:95%;
+    overflow: auto;
+    max-height: 95%;   
+}
+
+.marker-properties,
+.metadata {
+    border-collapse:collapse;
+    font-size:11px;
+    width:100%;
+    overflow:auto;
+    border-bottom:1px solid #ccc;
+
+    /* Equal to 6 rows */
+    max-height:189px;
+}
+
+.marker-properties {
+    display:block;
+}
+
+.metadata {
+    display:table;
+}
+
+.marker-properties th {
+    width:33.3333%;
+    min-width:100px;
+    white-space:nowrap;
+    border:1px solid #ccc;
+}
+
+.marker-properties td {
+    width:60%;
+}
+
+.marker-properties.display td,
+.marker-properties.display th {
+    padding:5px 10px;
+}
+
+.marker-properties tr:last-child td,
+.marker-properties tr:last-child th {
+    border-bottom:none;
+}
+
+.marker-properties tr:nth-child(even) th,
+.marker-properties tr:nth-child(even) td,
+.metadata tr:nth-child(even) td {
+    background-color:#f7f7f7;
+}
+
+
+/* Style the form */
+#formfields {
+    background-color: #ffffff;
+    margin: 10px auto;
+    padding: 4px;
+    width: 70%;
+    min-width: 300px;
+    width: 95%;
+    height: 40%;
+    min-height: 20%;
+  }
+  
+
+  
+  /* Mark input boxes that gets an error on validation: */
+  input.invalid {
+    background-color: #ffdddd;
+  }
+  
+  /* Hide all steps by default: */
+  .tab {
+    display: none;
+    min-width: 300px;
+    height: 80%;
+    width: 90%;
+    min-height: 20%;    
+  }
+  
+  /* Make circles that indicate the steps of the form: */
+  .step {
+    height: 15px;
+    width: 15px;
+    margin: 0 2px;
+    background-color: #bbbbbb;
+    border: none;
+    border-radius: 50%;
+    display: inline-block;
+    opacity: 0.5;
+  }
+  
+  /* Mark the active step: */
+  .step.active {
+    opacity: 1;
+  }
+  
+  /* Mark the steps that are finished and valid: */
+  .step.finish {
+    background-color: #04AA6D;
+  }
+  .c3-tooltip-container {
+    width:300px;
+  }
