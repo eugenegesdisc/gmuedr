@@ -10,6 +10,7 @@ from ogc_edr_lib.connexion_ext.validation_ext import (
 from ogc_edr_lib.connexion_ext.uri_parsers import (
     MyOpenAPIURIParser)
 
+
 def main():
     # ---custom validator-----
     validator_map = {
@@ -30,5 +31,9 @@ def main():
                 pass_context_arg_name='request',
                 validator_map=validator_map,
                 strict_validation=False)
-
+    static_dir = os.path.join(os.path.dirname(__file__), '../static')
+    app.app.add_routes(
+        [web.static("/static", static_dir,
+                    follow_symlinks=True, show_index=True)]
+        )
     app.run(port=8080)

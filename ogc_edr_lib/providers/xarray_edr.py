@@ -9,6 +9,7 @@ import numpy as np
 import cftime
 import json
 import os
+import re
 from ogc_edr_lib.util import ogrutil
 from ogc_edr_lib.util import geopandas_util as gutil
 from astropy.utils.misc import JsonCustomEncoder
@@ -617,7 +618,7 @@ class XarrayEDRProvider(BaseProvider):
             self, the_xarrays, theproperties, theparams):
         referencing = [
                         {
-                            "ccordinates": ["t"],
+                            "coordinates": ["t"],
                             "system": {
                                 "type": "TemporalRS",
                                 "calendar": "Gregorian"
@@ -866,7 +867,7 @@ class XarrayEDRProvider(BaseProvider):
             self, thedata, theparams, theproperties):
         referencing = [
                         {
-                            "ccordinates": ["t"],
+                            "coordinates": ["t"],
                             "system": {
                                 "type": "TemporalRS",
                                 "calendar": "Gregorian"
@@ -949,7 +950,8 @@ class XarrayEDRProvider(BaseProvider):
         for p in theparams:
             the_range = {
               "type": "NdArray",
-              "dataType": the_traj_data[p].dtype.name,
+              "dataType": self._get_coveragejson_accepted_data_type(
+                the_traj_data[p].dtype.name),
               "axisNames": ["composite"],
               "shape": [0],
               "values": []
@@ -1374,7 +1376,8 @@ class XarrayEDRProvider(BaseProvider):
         the_var = the_ds[the_param_name]
         the_range = {}
         the_range["type"] = "NdArray"
-        the_range["dataType"] = the_var.dtype.name
+        the_range["dataType"] = self._get_coveragejson_accepted_data_type(
+            the_var.dtype.name)
         the_range["axisNames"] = self._form_variable_range_axes(
             the_var, theproperties)
         the_range["shape"] = list(the_var.shape)
@@ -1447,7 +1450,8 @@ class XarrayEDRProvider(BaseProvider):
             if the_symbol is None:
                 the_symbol_o = None
             else:
-                the_symbol_o = {"value": the_symbol}
+                the_type_o = "http://ogc/"+the_symbol
+                the_symbol_o = {"type": the_type_o, "value": the_symbol}
             the_dtype = the_var.dtype.name
             the_units = Units(
                 label=the_unit_label_o,
@@ -1715,7 +1719,7 @@ class XarrayEDRProvider(BaseProvider):
                                 "id": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
                             }
                         }, {
-                            "ccordinates": ["t"],
+                            "coordinates": ["t"],
                             "system": {
                                 "type": "TemporalRS",
                                 "calendar": "Gregorian"
@@ -1786,11 +1790,28 @@ class XarrayEDRProvider(BaseProvider):
         the_var = the_ds[the_param_name]
         the_range = {}
         the_range["type"] = "NdArray"
-        the_range["dataType"] = the_var.dtype.name
+        the_range["dataType"] = self._get_coveragejson_accepted_data_type(
+            the_var.dtype.name)
         the_t_var = the_var.fillna(None)
         the_range["values"] = the_t_var.values.flatten().tolist()
         return the_range
     # ================coverage-json-point================
+
+    def _get_coveragejson_accepted_data_type(self, the_dtype_name):
+        if self._str_startswith_ignorecase("int", the_dtype_name):
+            return "integer"
+        elif self._str_startswith_ignorecase("float", the_dtype_name):
+            return "float"
+        elif self._str_startswith_ignorecase("str", the_dtype_name):
+            return "string"
+        else:
+            return "string"
+
+    def _str_startswith_ignorecase(self, pattern, the_str):
+        return bool(re.match(pattern, the_str, re.I))
+
+    def _str_endswith_ignorecase(self, pattern, the_str):
+        return bool(re.match(".*"+pattern+"$", the_str, re.I))
 
     def _get_feature_collection_for_points2(
             self, collection_id, points, data, properties, params):
@@ -2208,10 +2229,10 @@ class XarrayEDRProvider(BaseProvider):
                 time_var = coord
                 continue
             if thedata.coords[coord].attrs['units'] == 'degrees_north':
-                x_var = coord
+                y_var = coord
                 continue
             if thedata.coords[coord].attrs['units'] == 'degrees_east':
-                y_var = coord
+                x_var = coord
                 continue
 
         if self.x_field is None:
@@ -2221,6 +2242,8 @@ class XarrayEDRProvider(BaseProvider):
         if self.time_field is None:
             self.time_field = time_var
         print("time_field=", self.time_field)
+        print("x_field=", self.x_field)
+        print("y_field=", self.y_field)
         # It would be preferable to use CF attributes to get width
         # resolution etc but for now a generic approach is used to asess
         # all of the attributes based on lat lon vars
