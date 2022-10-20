@@ -10,6 +10,7 @@ import cftime
 import json
 import os
 import re
+import datetime as std_datetime
 from ogc_edr_lib.util import ogrutil
 from ogc_edr_lib.util import geopandas_util as gutil
 from astropy.utils.misc import JsonCustomEncoder
@@ -61,7 +62,7 @@ class XarrayEDRProvider(BaseProvider):
     category = "edr"
     supported_media_types = ["netcdf", "xarray"]
 
-    def __init__(self, provider_def):
+    def __init__(self, provider_def, collection_spec=None):
         """
         Initialize object
 
@@ -69,7 +70,7 @@ class XarrayEDRProvider(BaseProvider):
 
         :returns: pygeoapi.formatter.base.BaseFormatter
         """
-        super().__init__(provider_def)
+        super().__init__(provider_def, collection_spec=collection_spec)
 
     def get_data_for_location(
             self, collection_id, location_id,
@@ -387,9 +388,10 @@ class XarrayEDRProvider(BaseProvider):
                 the_offset = offset
         the_number_returned = the_number_matched - the_offset
         if the_number_returned > 0:
-            if the_number_returned > limit:
-                the_number_returned = limit
-            the_return_data = gdf[offset:]
+            if the_number_returned > the_limit:
+                the_number_returned = the_limit
+            the_return_data = gdf[the_offset:]
+            the_return_data = the_return_data[:the_limit]
         else:
             the_number_returned = 0
             the_return_data = None

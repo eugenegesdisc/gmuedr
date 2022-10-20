@@ -4,7 +4,7 @@ class BaseProvider:
     category = 'base'
     supported_media_types = []
 
-    def __init__(self, provider_def):
+    def __init__(self, provider_def, collection_spec=None):
         """
         Initialize object
 
@@ -13,6 +13,7 @@ class BaseProvider:
         :returns: ogc_edr_lib.provider.base.BaseProvider
         """
         self.provider_def = provider_def
+        self.collection_spec = collection_spec
 
     def query(self, **kwargs):
         """

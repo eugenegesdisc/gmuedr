@@ -112,7 +112,7 @@ class OgcApiCollectionMetadataListDataLocations(OgcApi):
         best_match = self._negotiate_content_best_match(
             api_path, request, the_formats)
 
-        the_offset = qstrs.get("offset")
+        the_offset = self._get_first_parameter_as_int(qstrs,"offset")
         translator = LocaleTranslator()
         thecollection_value = translator.get_config_translated(
             the_locale)["resources"][collection_id]
@@ -134,6 +134,7 @@ class OgcApiCollectionMetadataListDataLocations(OgcApi):
                 collection_id, bbox, datetime, limit, the_offset,
                 best_match)
 
+        # print("mediatype=", best_match, "thecollection_data=", thecollection_data)
 #        retcontent = self._get_collection_items(
 #            collection_id, thecollection_data, best_match)
         the_final_ret = self._format_list_collection_data_locations(
@@ -143,6 +144,20 @@ class OgcApiCollectionMetadataListDataLocations(OgcApi):
         status = 200
         content = the_final_ret
         return headers, status, content
+
+    def _get_first_parameter_as_int(self, qstrs, param):
+        if param is None or qstrs is None:
+            return None
+        the_param_values = qstrs.get(param)
+        if the_param_values is None:
+            return None
+        if isinstance(the_param_values, list):
+            if (len(the_param_values)>0):
+                return int(the_param_values[0])
+            else:
+                return None
+        else:
+            return int(the_param_values)
 
     def _get_collection_locations(
         self, collection_spec: dict,
@@ -167,9 +182,14 @@ class OgcApiCollectionMetadataListDataLocations(OgcApi):
                 pluginmanager.get_plugin_by_category_media_type(
                     "provider", theprovider_def.get("type"),
                     theprovider_def.get("name"))
-            theprovider = theplugin.cls(theprovider_def)
+            print("PROVIDER type=",
+                theprovider_def.get("type"), "name=",
+                theprovider_def.get("name"))
+            theprovider = theplugin.cls(
+                theprovider_def, collection_spec=collection_spec)
             thedata = theprovider.list_collection_data_locations(
                 collection_id, bbox, datetime, limit, offset)
+            print("type(thedata)=", type(thedata))
             # type: str=None,
             # features: List[FeatureGeoJSON]=None,
             # parameters: List[Parameter]=None,
@@ -188,11 +208,11 @@ class OgcApiCollectionMetadataListDataLocations(OgcApi):
     def _format_list_collection_data_locations(
             self, thedata, mediatype: str, loc="en_US"):
         theplugin = self.config.pluginmanager.get_plugin_by_category_media_type(
-            "formatter", "collection_edr_location", mediatype)
+            "formatter", "collection_metadata_locations", mediatype)
         # Assuming thedata is already in the suitable format
         if theplugin is None:
-            Logger.warning("No formaater for mediatype={} for {}.".format(
-                mediatype, "collection_edr_location"
+            Logger.warning("No formater for mediatype={} for {}.".format(
+                mediatype, "collection_metadata_locations"
             ))
             return thedata
         thewriter = theplugin.cls({})

@@ -20,7 +20,7 @@ from packaging.version import Version
 from werkzeug.datastructures import FileStorage
 
 from connexion.exceptions import (BadRequestProblem, ExtraParameterProblem,
-                          UnsupportedMediaTypeProblem)
+                                  UnsupportedMediaTypeProblem)
 from connexion.http_facts import FORM_CONTENT_TYPES
 from connexion.json_schema import Draft4RequestValidator, Draft4ResponseValidator
 from connexion.lifecycle import ConnexionResponse
@@ -50,6 +50,7 @@ paths_ignore_validation_html = [
     "/.*/collections/.*/cube$",
     "/.*/collections/.*/radius$",
     "/.*/collections/.*/locations$"]
+
 
 class TypeValidationError(Exception):
     def __init__(self, schema_type, parameter_type, parameter_name):
@@ -117,7 +118,7 @@ def my_coerce_type(param, value, parameter_type, parameter_name=None):
                 return d
 
             return cast_leaves(value, param_schema)
-        
+
         if type(value) is not dict:
             try:
                 return make_type(value, param_schema['type'])
@@ -127,7 +128,8 @@ def my_coerce_type(param, value, parameter_type, parameter_name=None):
         try:
             return make_type(value, param_type)
         except ValueError:
-            raise TypeValidationError(param_type, parameter_type, parameter_name)
+            raise TypeValidationError(
+                param_type, parameter_type, parameter_name)
         except TypeError:
             return value
 
@@ -157,7 +159,8 @@ class MyRequestBodyValidator:
         self.has_default = schema.get('default', False)
         self.is_null_value_valid = is_null_value_valid
         validatorClass = validator or Draft4RequestValidator
-        self.validator = validatorClass(schema, format_checker=draft4_format_checker)
+        self.validator = validatorClass(
+            schema, format_checker=draft4_format_checker)
         self.api = api
         self.strict_validation = strict_validation
 
@@ -180,30 +183,36 @@ class MyRequestBodyValidator:
                 empty_body = not(request.body or request.form or request.files)
                 if data is None and not empty_body and not self.is_null_value_valid:
                     try:
-                        ctype_is_json = is_json_mimetype(request.headers.get("Content-Type", ""))
+                        ctype_is_json = is_json_mimetype(
+                            request.headers.get("Content-Type", ""))
                     except ValueError:
                         ctype_is_json = False
 
                     if ctype_is_json:
                         # Content-Type is json but actual body was not parsed
-                        raise BadRequestProblem(detail="Request body is not valid JSON")
+                        raise BadRequestProblem(
+                            detail="Request body is not valid JSON")
                     else:
                         # the body has contents that were not parsed as JSON
                         raise UnsupportedMediaTypeProblem(
                                        detail="Invalid Content-type ({content_type}), expected JSON data".format(
-                                           content_type=request.headers.get("Content-Type", "")
+                                           content_type=request.headers.get(
+                                               "Content-Type", "")
                                        ))
 
                 logger.debug("%s validating schema...", request.url)
                 if data is not None or not self.has_default:
                     self.validate_schema(data, request.url)
             elif self.consumes[0] in FORM_CONTENT_TYPES:
-                data = dict(request.form.items()) or (request.body if len(request.body) > 0 else {})
-                data.update(dict.fromkeys(request.files, ''))  # validator expects string..
+                data = dict(request.form.items()) or (
+                    request.body if len(request.body) > 0 else {})
+                # validator expects string..
+                data.update(dict.fromkeys(request.files, ''))
                 logger.debug('%s validating schema...', request.url)
 
                 if self.strict_validation:
-                    formdata_errors = self.validate_formdata_parameter_list(request)
+                    formdata_errors = self.validate_formdata_parameter_list(
+                        request)
                     if formdata_errors:
                         raise ExtraParameterProblem(formdata_errors, [])
 
@@ -213,7 +222,8 @@ class MyRequestBodyValidator:
                     for k, param_defn in props.items():
                         if k in data:
                             try:
-                                data[k] = my_coerce_type(param_defn, data[k], 'requestBody', k)
+                                data[k] = my_coerce_type(
+                                    param_defn, data[k], 'requestBody', k)
                             except TypeValidationError as e:
                                 errs += [str(e)]
                                 print(errs)
@@ -263,7 +273,8 @@ class MyResponseBodyValidator:
         :type validator: jsonschema.IValidator
         """
         ValidatorClass = validator or Draft4ResponseValidator
-        self.validator = ValidatorClass(schema, format_checker=draft4_format_checker)
+        self.validator = ValidatorClass(
+            schema, format_checker=draft4_format_checker)
 
     def validate_schema(self, data, url):
         # type: (dict, AnyStr) -> Union[ConnexionResponse, None]
@@ -299,7 +310,8 @@ class MyParameterValidator:
                 return
 
             try:
-                converted_value = my_coerce_type(param, value, parameter_type, param_name)
+                converted_value = my_coerce_type(
+                    param, value, parameter_type, param_name)
             except TypeValidationError as e:
                 return str(e)
 
@@ -315,7 +327,8 @@ class MyParameterValidator:
                             Draft4Validator,
                             type_checker=Draft4Validator.TYPE_CHECKER.redefine(
                                 "file",
-                                lambda checker, instance: isinstance(instance, FileStorage)
+                                lambda checker, instance: isinstance(
+                                    instance, FileStorage)
                             )
                         )(param, format_checker=draft4_format_checker).validate(converted_value)
                     else:
@@ -349,9 +362,10 @@ class MyParameterValidator:
 
     @staticmethod
     def test_here(param, converted_value):
-        the_validator =  Draft4Validator(
+        the_validator = Draft4Validator(
                         param, format_checker=draft4_format_checker)
-        the_best = MyParameterValidator.best_match(the_validator.iter_errors(converted_value))
+        the_best = MyParameterValidator.best_match(
+            the_validator.iter_errors(converted_value))
         print("the_best=", the_best)
 
     @staticmethod
@@ -423,7 +437,8 @@ class MyParameterValidator:
 
             if self.strict_validation:
                 query_errors = self.validate_query_parameter_list(request)
-                formdata_errors = self.validate_formdata_parameter_list(request)
+                formdata_errors = self.validate_formdata_parameter_list(
+                    request)
 
                 if formdata_errors or query_errors:
                     raise ExtraParameterProblem(formdata_errors, query_errors)
@@ -452,19 +467,20 @@ class MyParameterValidator:
                     raise BadRequestProblem(detail=error)
 
             for param in self.parameters.get('formData', []):
-                error = self.validate_formdata_parameter(param["name"], param, request)
+                error = self.validate_formdata_parameter(
+                    param["name"], param, request)
                 if error:
                     raise BadRequestProblem(detail=error)
 
-            print("type(function=",type(function))
+            print("type(function=", type(function))
 
             return function(request)
 
         return wrapper
 
     def _check_path_ends_with(self, request):
-        print(request)
-        print("dir -----", dir(request.context))
+        # print(request)
+        # print("dir -----", dir(request.context))
         the_path = request.context.path
         for p in paths_ignore_validation_html:
             if re.fullmatch(p, the_path) is not None:
@@ -484,7 +500,7 @@ class MyParameterValidator:
         if (the_a_formats is not None):
             the_formats = ",".join(the_a_formats).split(",")
             if "text/html" in the_formats:
-                return True        
+                return True
         return False
 
     def _get_full_media_type_from_f_params(self, f_formats: list):

@@ -13,7 +13,7 @@ class XarrayCoverageProvider(BaseProvider):
     category = "coverage"
     supported_media_types = ["netcdf", "xarray"]
 
-    def __init__(self, provider_def):
+    def __init__(self, provider_def, collection_spec=None):
         """
         Initialize object
 
@@ -21,7 +21,7 @@ class XarrayCoverageProvider(BaseProvider):
 
         :returns: pygeoapi.formatter.base.BaseFormatter
         """
-        super().__init__(provider_def)
+        super().__init__(provider_def, collection_spec=collection_spec)
 
     def query_items(self, bbox=None,
                     datetime=None, limit=None):

@@ -838,8 +838,8 @@
           }
       }
     </script>
-    <script src="http://labs.metoffice.gov.uk/edr/static/js/line-interpolate-points.js"></script>
-    <script src="http://labs.metoffice.gov.uk/edr/static/js/time_duration.js"></script>
+    <script src="../../../static/js/line-interpolate-points.js"></script>
+    <script src="../../../static/js/time_duration.js"></script>
     <script src="https://cdn.jsdelivr.net/covjson-reader/0.16.3/covjson-reader.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/wicket/1.3.6/wicket.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.0/highlight.min.js"></script>
@@ -2160,7 +2160,11 @@
           // By doing that, the palette and extent get unified (if existing)
           // and an event gets fired if a new parameter was added.
           // See the code above where ParameterSync gets instantiated.
-          paramSync.addLayer(covLayer)
+          try{
+            paramSync.addLayer(covLayer);
+          }catch(err){
+            console.error(err)
+          }
           if (!cov.coverages) {
               if (covLayer.time) {
                   new C.TimeAxis(covLayer).addTo(map)

@@ -136,7 +136,7 @@ class OgcApiCollectionDataByLocation(OgcApi):
             "formatter", "collection_edr_location", mediatype)
         # Assuming thedata is already in the suitable format
         if theplugin is None:
-            Logger.warning("No formaater for mediatype={} for {}.".format(
+            Logger.warning("No formater for mediatype={} for {}.".format(
                 mediatype, "collection_edr_location"
             ))
             return thedata

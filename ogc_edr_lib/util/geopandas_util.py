@@ -8,6 +8,7 @@ import logging
 import numpy as np
 import pandas as pd
 import re
+import traceback
 
 
 def create_corridor_lines_wkt(
@@ -158,19 +159,23 @@ def rxr_clip(thedata, theparams, thepolygonwkt):
     theretdata = {}
     thecoords = {}
     try:
-        print("thepolygonwkt=", thepolygonwkt)
+        # print("thepolygonwkt=", thepolygonwkt)
         thegeom = gpd.GeoSeries.from_wkt([thepolygonwkt])
-        print("thegeom=", thegeom)
+        # print("thegeom=", thegeom)
         for v in theparams:
+            # print("v=", v)
             p = thedata[v]
+            if p.dtype == '<m8[ns]':
+                p = p.astype('timedelta64[ns]')
             p.rio.set_spatial_dims(x_dim="lon", y_dim="lat", inplace=True)
             p.rio.write_crs("epsg:4326", inplace=True)
             clipped = p.rio.clip(thegeom.apply(mapping), p.rio.crs, drop=True)
             theretdata[v] = clipped
-            print("len(thecoords)=", len(thecoords))
+            # print("len(thecoords)=", len(thecoords))
         theretds = xr.Dataset(theretdata, thecoords, thedata.attrs)
         return theretds
     except Exception as ee:
+        traceback.print_exc()
         logging.getLogger("ogc_edr_lib.util.geopandas").warning(
             ee
         )
