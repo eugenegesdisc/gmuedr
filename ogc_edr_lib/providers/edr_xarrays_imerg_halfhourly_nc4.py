@@ -126,7 +126,9 @@ class EDRProviderXarraysHalfHourlyNC4(BaseProvider):
             # thedata["id_user_"] = the_id_array
             theparams = self._parse_parameter_name(
                 None, theproperties)
-            # thedata = thedata.get(theparams)
+            thedata = thedata.get(theparams)
+            if datetime is not None:
+                thedata = self._subset_along_time_dimension(thedata, datetime)
             # thepolygon = ogrutil.get_polygon_from_wkt(coords)
             # may need to convert the crs...
             # print("thepolygon=", thepolygon)
@@ -1220,6 +1222,8 @@ class EDRProviderXarraysHalfHourlyNC4(BaseProvider):
             # thepolygon = ogrutil.get_polygon_from_wkt(coords)
             # may need to convert the crs...
             # print("thepolygon=", thepolygon)
+            if datetime is not None:
+                thedata = self._subset_along_time_dimension(thedata, datetime)
             the_crs = self._parse_crs(crs)
 
             minX = bbox[0]
