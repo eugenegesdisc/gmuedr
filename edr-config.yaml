@@ -194,7 +194,7 @@ resources:
                     84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
         cube:
           link:
-            href: '/collections/imerggdl_20220301/cube?bbox={bbox_values}'
+            href: '/collections/imerggdl_20220301/cube'
             hreflang: en
             rel: data
             templated: true
@@ -587,7 +587,7 @@ resources:
                     84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
         cube:
           link:
-            href: '/collections/imerggdl_2021/cube?bbox={bbox_values}'
+            href: '/collections/imerggdl_2021/cube'
             hreflang: en
             rel: data
             templated: true
@@ -878,12 +878,11 @@ resources:
             geom_field: the_geom
             geom_format: ewkb
 
-
-    imergghhl_2021:
+    imerghhl_20220101:
       type: collection
-      title: '2021 - GPM IMERG Late Precipitation L3 Half Hourly 0.1 degree x 0.1 degree V06 (GPM_3IMERGHHL)'
+      title: '20220101 - GPM IMERG Late Precipitation L3 Half Hourly 0.1 degree x 0.1 degree V06 (GPM_3IMERGHHL)'
       description: >-
-        The GPM precipitation data for 2021. Half hourly accumulated precipitation
+        The GPM precipitation data for 20220101. Half hourly accumulated precipitation
         (combined microwave-IR) estimate
       keywords:
         - Precipitation
@@ -893,7 +892,7 @@ resources:
         - type: text/html
           rel: canonical
           title: information
-          href: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGDL_06/summary?keywords=imerg'
+          href: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGHHL_06/summary?keywords=imerg'
           hreflang: en-US
       extents:
         spatial:
@@ -913,7 +912,7 @@ resources:
       data_queries:
         items:
           link:
-            href: '/collections/imerggdl_2021/items'
+            href: '/collections/imerghhl_20220101/items'
             hreflang: en
             rel: data
             templated: true
@@ -933,7 +932,7 @@ resources:
           linkrel: relative
         position:
           link:
-            href: /collections/imergghhl_2021/position?coords={coords}
+            href: /collections/imerghhl_20220101/position?coords={coords}
             hreflang: en
             rel: data
             templated: true
@@ -956,7 +955,7 @@ resources:
           linkrel: relative
         radius:
           link:
-            href: '/collections/imergghhl_2021/radius?coords={coords}'
+            href: '/collections/imerghhl_20220101/radius?coords={coords}'
             hreflang: en
             rel: data
             templated: true
@@ -981,7 +980,7 @@ resources:
                     84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
         cube:
           link:
-            href: '/collections/imergghhl_2021/cube?bbox={bbox_values}'
+            href: '/collections/imerghhl_20220101/cube'
             hreflang: en
             rel: data
             templated: true
@@ -1012,7 +1011,7 @@ resources:
                     84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
         area:
           link:
-            href: '/collections/imergghhl_2021/area?coords={coords}'
+            href: '/collections/imerghhl_20220101/area?coords={coords}'
             hreflang: en
             rel: data
             templated: true
@@ -1036,7 +1035,7 @@ resources:
                     84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
         trajectory:
           link:
-            href: '/collections/imergghhl_2021/trajectory?coords={coords}'
+            href: '/collections/imerghhl_20220101/trajectory?coords={coords}'
             hreflang: en
             rel: data
             templated: true
@@ -1064,7 +1063,7 @@ resources:
                     84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
         corridor:
           link:
-            href: '/collections/imergghhl_2021/corridor?coords={coords}&cooridor-width={cooridor_width}&width-units={width_units}&cooridor-height={cooridor_height}&height-units={height_units}'
+            href: '/collections/imerghhl_20220101/corridor?coords={coords}&cooridor-width={cooridor_width}&width-units={width_units}&cooridor-height={cooridor_height}&height-units={height_units}'
             hreflang: en
             rel: data
             templated: true
@@ -1108,7 +1107,429 @@ resources:
                     84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
         locations:
           link:
-            href: /collections/imergghhl_2021/locations
+            href: /collections/imerghhl_20220101/locations
+            hreflang: en
+            rel: data
+            templated: false
+            variables:
+              title: Location query
+              description: Location query
+              query_type: locations
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+      crs:
+        - CRS84
+      output_formats:
+        - CoverageJSON
+        - GeoJSON
+      parameter_names:
+        precipitationCal:
+          type: Parameter
+          description: 'Multi-satellite precipitation estimate with gauge calibration (recommended for general use)'
+          unit:
+            label: millimeter
+            symbol:
+              value: mm
+              type: 'http://www.example.org/edr/metadata/units/millimeter'
+          observedProperty:
+            id: 'http://codes.wmo.int/common/quantity-kind/_totalPrecipitation'
+            label: Multi-satellite precipitation estimate with gauge calibration (recommended for general use)
+          measurementType:
+            method: sum
+            period: PT30M
+        precipitationUncal:
+          type: Parameter
+          description: 'Multi-satellite precipitation estimate'
+          unit:
+            label: millimeter
+            symbol:
+              value: mm
+              type: 'http://www.example.org/edr/metadata/units/millimeter'
+          observedProperty:
+            id: 'http://codes.wmo.int/common/quantity-kind/_totalPrecipitation'
+            label: Multi-satellite precipitation estimate
+          measurementType:
+            method: sum
+            period: PT30M
+        randomError:
+          type: Parameter
+          description: 'Random error for gauge-calibrated multi-satellite precipitation'
+          unit:
+            label: millimeter
+            symbol:
+              value: mm
+              type: 'http://www.example.org/edr/metadata/units/millimeter'
+          observedProperty:
+            id: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGHHL_06/randomError'
+            label: Random error for gauge-calibrated multi-satellite precipitation
+          measurementType:
+            method: sum
+            period: PT30M
+        HQprecipitation:
+          type: Parameter
+          description: 'Merged microwave-only precipitation estimate'
+          unit:
+            label: millimeter
+            symbol:
+              value: mm
+              type: 'http://www.example.org/edr/metadata/units/count'
+          observedProperty:
+            id: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGHHL_06/HQprecipitation'
+            label: Merged microwave-only precipitation estimate
+          measurementType:
+            method: sum
+            period: PT30M
+        HQprecipSource:
+          type: Parameter
+          description: 'Microwave satellite source identifier'
+          unit:
+            label: millimeter
+            symbol:
+              value: mm
+              type: 'http://www.example.org/edr/metadata/units/millimeter'
+          observedProperty:
+            id: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGHHL_06/HQprecipSource'
+            label: Microwave satellite source identifier
+          measurementType:
+            method: sum
+            period: PT30M
+        HQobservationTime:
+          type: Parameter
+          description: 'Microwave satellite observation time'
+          unit:
+            label: minutes
+            symbol:
+              value: m
+              type: 'http://www.example.org/edr/metadata/units/minutes'
+          observedProperty:
+            id: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGHHL_06/HQobservationTime'
+            label: Microwave satellite observation time
+          measurementType:
+            method: count
+            period: PT30M
+        IRprecipitation:
+          type: Parameter
+          description: 'IR-only precipitation estimate'
+          unit:
+            label: millimeter
+            symbol:
+              value: mm
+              type: 'http://www.example.org/edr/metadata/units/millimeter'
+          observedProperty:
+            id: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGHHL_06/IRprecipitation'
+            label: IR-only precipitation estimate
+          measurementType:
+            method: sum
+            period: PT30M
+        IRkalmanFilterWeight:
+          type: Parameter
+          description: 'Weighting of IR-only precipitation relative to the morphed merged microwave-only precipitation'
+          unit:
+            label: ratio
+            symbol:
+              value: ratio
+              type: 'http://www.example.org/edr/metadata/units/ratio'
+          observedProperty:
+            id: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGHHL_06/IRkalmanFilterWeight'
+            label: Weighting of IR-only precipitation
+          measurementType:
+            method: ratio
+            period: PT30M
+        probabilityLiquidPrecipitation:
+          type: Parameter
+          description: 'Probability of liquid precipitation phase'
+          unit:
+            label: percent
+            symbol:
+              value: percent
+              type: 'http://www.example.org/edr/metadata/units/percent'
+          observedProperty:
+            id: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGHHL_06/probabilityLiquidPrecipitation'
+            label: Probability of liquid precipitation phase
+          measurementType:
+            method: percent
+            period: PT30M
+        precipitationQualityIndex:
+          type: Parameter
+          description: 'Quality Index for precipitationCal field'
+          unit:
+            label: index
+            symbol:
+              value: index
+              type: 'http://www.example.org/edr/metadata/units/index'
+          observedProperty:
+            id: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGHHL_06/precipitationQualityIndex'
+            label: Quality Index for precipitationCal field
+          measurementType:
+            method: index
+            period: PT30M
+      providers:
+        - type: edr
+          name: xarrays_imerg_halfhourly
+          data: /testdata/imerg/GPM_3IMERGHHL2022/001/3B-HHR-L.MS.MRG.3IMERG.*.V06B.HDF5
+          group: Grid
+          variables:
+            - precipitationCal
+            - precipitationUncal
+            - precipitationQualityIndex
+          id_field: ogc_id
+          loc_shapefile: /wksp/py/ogc/api/edr/edr/aiohttp/data/ne_10m_admin_0_countries/ne_10m_admin_0_countries.shp
+          locid_field: ADM0_A3
+          loctitle_field:
+            - locale: en
+              value: NAME_EN
+            - locale: zh-cn
+              value: NAME_ZH
+            - locale: fr
+              value: NAME_FR
+            - locale: zh-hk
+              value: NAME_ZHT
+            - locale: es
+              value: NAME_ES
+          title_field: ADMIN
+          table: country
+          geometry:
+            geom_field: the_geom
+            geom_format: ewkb
+
+    imerghhl_2021_v001:
+      type: collection
+      title: '2021 - v001 - GPM IMERG Late Precipitation L3 Half Hourly 0.1 degree x 0.1 degree V06 (GPM_3IMERGHHL)'
+      description: >-
+        The GPM precipitation data for 2021. Half hourly accumulated precipitation
+        (combined microwave-IR) estimate
+      keywords:
+        - Precipitation
+        - GPM
+        - NASA
+      links:
+        - type: text/html
+          rel: canonical
+          title: information
+          href: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGHHL_06/summary?keywords=imerg'
+          hreflang: en-US
+      extents:
+        spatial:
+          bbox:
+            - -180
+            - -90
+            - 180
+            - 90
+          crs: 'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]'
+        temporal:
+          intervals:
+            - - '2021-01-01T00:00:00Z'
+              - '2021-12-31T23:59:59Z'
+          trs: >-
+            TIMECRS["DateTime",TDATUM["Gregorian
+            Calendar"],CS[TemporalDateTime,1],AXIS["Time (T)",future]
+      data_queries:
+        items:
+          link:
+            href: '/collections/imerghhl_2021_v001/items'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: List items
+              description: List items. Default 10 items.
+              query_type: items
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+              default_output_format: GeoJSON
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+          linkrel: relative
+        position:
+          link:
+            href: /collections/imerghhl_2021_v001/position?coords={coords}
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Position query
+              description: Position query
+              query_type: position
+              coords:
+                description: Well Known Text POINT value i.e. POINT(-120, 55)
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+          linkrel: relative
+        radius:
+          link:
+            href: '/collections/imerghhl_2021_v001/radius?coords={coords}'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Radius query
+              description: Radius query
+              query_type: radius
+              coords:
+                description: 'Well Known Text POINT value i.e. POINT(-120, 55)'
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
+              within_units:
+                - km
+                - miles
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+        cube:
+          link:
+            href: '/collections/imerghhl_2021_v001/cube'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Cube query
+              description: Cube query
+              query_type: cube
+              bbox_values:
+                description: >-
+                  The bounding box is provided as four or six numbers,
+                  depending on whether the coordinate reference system
+                  includes a vertical axis
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
+              z:
+                description: Define the vertical level to return data from i.e. z=level
+              datetime:
+                description: Either a date-time or an interval, open or closed. Date and time expressions adhere to RFC 3339.
+              parameter-name:
+                description: comma delimited list of parameters to retrieve data for. Valid parameters are listed in the collections metadata
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+        area:
+          link:
+            href: '/collections/imerghhl_2021_v001/area?coords={coords}'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Area query
+              description: Area query
+              query_type: area
+              coords:
+                description: >-
+                  Well Known Text POLYGON value i.e. POLYGON((-79 40,-79 38,-75
+                  38,-75 41,-79 40))
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+        trajectory:
+          link:
+            href: '/collections/imerghhl_2021_v001/trajectory?coords={coords}'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Trajectory query
+              description: Trajectory query
+              query_type: trajectory
+              coords:
+                description: 'Well Known Text LINESTRING value i.e. LINESTRING(-2.87 51.14 , -2.98 51.36 ,-3.15 51.03 ,-3.48 50.74 ,-3.36 50.9 )'
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
+              z:
+                description: Define the vertical level to return data from i.e. z=level
+              datetime:
+                description: Either a date-time or an interval, open or closed. Date and time expressions adhere to RFC 3339.
+              parameter-name:
+                description: comma delimited list of parameters to retrieve data for. Valid parameters are listed in the collections metadata
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+        corridor:
+          link:
+            href: '/collections/imerghhl_2021_v001/corridor?coords={coords}&cooridor-width={cooridor_width}&width-units={width_units}&cooridor-height={cooridor_height}&height-units={height_units}'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Corridor query
+              description: Corridor query
+              query_type: corridor
+              coords:
+                description: 'Well Known Text LINESTRING value i.e. LINESTRING(-2.87 51.14 , -2.98 51.36 ,-3.15 51.03 ,-3.48 50.74 ,-3.36 50.9 )'
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
+              z:
+                description: Define the vertical level to return data from i.e. z=level
+              datetime:
+                description: Either a date-time or an interval, open or closed. Date and time expressions adhere to RFC 3339.
+              parameter-name:
+                description: comma delimited list of parameters to retrieve data for. Valid parameters are listed in the collections metadata
+              corridor_width:
+                description: Define the vertical level to return data from i.e. z=level
+              width_units:
+                - m
+                - km
+                - miles
+              corridor_height:
+                description: Define the vertical level to return data from i.e. z=level
+              height_units:
+                - m
+                - km
+                - miles
+              resolution_x:
+                description: Defined it the user requires data at a different resolution from the native resolution of the data along the x-axis
+              resolution_z:
+                description: Defined it the user requires data at a different resolution from the native resolution of the data along the z-axis
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+        locations:
+          link:
+            href: /collections/imerghhl_2021_v001/locations
             hreflang: en
             rel: data
             templated: false
@@ -1300,6 +1721,316 @@ resources:
           geometry:
             geom_field: the_geom
             geom_format: ewkb
+
+    imerghhl_2021:
+      type: collection
+      title: '2021 - GPM IMERG Late Precipitation L3 Half Hourly 0.1 degree x 0.1 degree V06 (GPM_3IMERGHHL)'
+      description: >-
+        The GPM precipitation data for 2021. Half hourly accumulated precipitation
+        (combined microwave-IR) estimate
+      keywords:
+        - Precipitation
+        - GPM
+        - NASA
+      links:
+        - type: text/html
+          rel: canonical
+          title: information
+          href: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGHHL_06/summary?keywords=imerg'
+          hreflang: en-US
+      extents:
+        spatial:
+          bbox:
+            - -180
+            - -90
+            - 180
+            - 90
+          crs: 'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]'
+        temporal:
+          intervals:
+            - - '2021-01-01T00:00:00Z'
+              - '2021-12-31T23:59:59Z'
+          trs: >-
+            TIMECRS["DateTime",TDATUM["Gregorian
+            Calendar"],CS[TemporalDateTime,1],AXIS["Time (T)",future]
+      data_queries:
+        items:
+          link:
+            href: '/collections/imerghhl_2021/items'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: List items
+              description: List items. Default 10 items.
+              query_type: items
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+              default_output_format: GeoJSON
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+          linkrel: relative
+        position:
+          link:
+            href: /collections/imerghhl_2021/position?coords={coords}
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Position query
+              description: Position query
+              query_type: position
+              coords:
+                description: Well Known Text POINT value i.e. POINT(-120, 55)
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+          linkrel: relative
+        radius:
+          link:
+            href: '/collections/imerghhl_2021/radius?coords={coords}'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Radius query
+              description: Radius query
+              query_type: radius
+              coords:
+                description: 'Well Known Text POINT value i.e. POINT(-120, 55)'
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
+              within_units:
+                - km
+                - miles
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+        cube:
+          link:
+            href: '/collections/imerghhl_2021/cube'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Cube query
+              description: Cube query
+              query_type: cube
+              bbox_values:
+                description: >-
+                  The bounding box is provided as four or six numbers,
+                  depending on whether the coordinate reference system
+                  includes a vertical axis
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
+              z:
+                description: Define the vertical level to return data from i.e. z=level
+              datetime:
+                description: Either a date-time or an interval, open or closed. Date and time expressions adhere to RFC 3339.
+              parameter-name:
+                description: comma delimited list of parameters to retrieve data for. Valid parameters are listed in the collections metadata
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+        area:
+          link:
+            href: '/collections/imerghhl_2021/area?coords={coords}'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Area query
+              description: Area query
+              query_type: area
+              coords:
+                description: >-
+                  Well Known Text POLYGON value i.e. POLYGON((-79 40,-79 38,-75
+                  38,-75 41,-79 40))
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+        trajectory:
+          link:
+            href: '/collections/imerghhl_2021/trajectory?coords={coords}'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Trajectory query
+              description: Trajectory query
+              query_type: trajectory
+              coords:
+                description: 'Well Known Text LINESTRING value i.e. LINESTRING(-2.87 51.14 , -2.98 51.36 ,-3.15 51.03 ,-3.48 50.74 ,-3.36 50.9 )'
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
+              z:
+                description: Define the vertical level to return data from i.e. z=level
+              datetime:
+                description: Either a date-time or an interval, open or closed. Date and time expressions adhere to RFC 3339.
+              parameter-name:
+                description: comma delimited list of parameters to retrieve data for. Valid parameters are listed in the collections metadata
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+        corridor:
+          link:
+            href: '/collections/imerghhl_2021/corridor?coords={coords}&cooridor-width={cooridor_width}&width-units={width_units}&cooridor-height={cooridor_height}&height-units={height_units}'
+            hreflang: en
+            rel: data
+            templated: true
+            variables:
+              title: Corridor query
+              description: Corridor query
+              query_type: corridor
+              coords:
+                description: 'Well Known Text LINESTRING value i.e. LINESTRING(-2.87 51.14 , -2.98 51.36 ,-3.15 51.03 ,-3.48 50.74 ,-3.36 50.9 )'
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
+              z:
+                description: Define the vertical level to return data from i.e. z=level
+              datetime:
+                description: Either a date-time or an interval, open or closed. Date and time expressions adhere to RFC 3339.
+              parameter-name:
+                description: comma delimited list of parameters to retrieve data for. Valid parameters are listed in the collections metadata
+              corridor_width:
+                description: Define the vertical level to return data from i.e. z=level
+              width_units:
+                - m
+                - km
+                - miles
+              corridor_height:
+                description: Define the vertical level to return data from i.e. z=level
+              height_units:
+                - m
+                - km
+                - miles
+              resolution_x:
+                description: Defined it the user requires data at a different resolution from the native resolution of the data along the x-axis
+              resolution_z:
+                description: Defined it the user requires data at a different resolution from the native resolution of the data along the z-axis
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+        locations:
+          link:
+            href: /collections/imerghhl_2021/locations
+            hreflang: en
+            rel: data
+            templated: false
+            variables:
+              title: Location query
+              description: Location query
+              query_type: locations
+              output_formats:
+                - CoverageJSON
+                - GeoJSON
+                - NetCDF
+              default_output_format: CoverageJSON
+              crs_details:
+                - crs: CRS84
+                  wkt: >-
+                    GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+                    84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]
+      crs:
+        - CRS84
+      output_formats:
+        - CoverageJSON
+        - GeoJSON
+      parameter_names:
+        precipitationCal:
+          type: Parameter
+          description: 'Multi-satellite precipitation estimate with gauge calibration (recommended for general use)'
+          unit:
+            label: millimeter
+            symbol:
+              value: mm
+              type: 'http://www.example.org/edr/metadata/units/millimeter'
+          observedProperty:
+            id: 'http://codes.wmo.int/common/quantity-kind/_totalPrecipitation'
+            label: Multi-satellite precipitation estimate with gauge calibration (recommended for general use)
+          measurementType:
+            method: sum
+            period: PT30M
+        HQobservationTime:
+          type: Parameter
+          description: 'Microwave satellite observation time'
+          unit:
+            label: minutes
+            symbol:
+              value: m
+              type: 'http://www.example.org/edr/metadata/units/minutes'
+          observedProperty:
+            id: 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGHHL_06/HQobservationTime'
+            label: Microwave satellite observation time
+          measurementType:
+            method: count
+            period: PT30M
+      providers:
+        - type: edr
+          name: xarrays_imerg_halfhourly_nc4
+          data: /testdata/imerg/GPM_3IMERGHHL2021_NC4/imerghhl_2021_001.nc
+          group: Grid
+          variables:
+            - precipitationCal
+            - precipitationQualityIndex
+          id_field: ogc_id
+          loc_shapefile: /wksp/py/ogc/api/edr/edr/aiohttp/data/ne_10m_admin_0_countries/ne_10m_admin_0_countries.shp
+          locid_field: ADM0_A3
+          loctitle_field:
+            - locale: en
+              value: NAME_EN
+            - locale: zh-cn
+              value: NAME_ZH
+            - locale: fr
+              value: NAME_FR
+            - locale: zh-hk
+              value: NAME_ZHT
+            - locale: es
+              value: NAME_ES
+          title_field: ADMIN
+          table: country
+          geometry:
+            geom_field: the_geom
+            geom_format: ewkb
+
 
     hello-world:
         type: process
