@@ -2046,7 +2046,7 @@ class EDRProviderXarraysDaily(BaseProvider):
             if thedata.endswith(".zarr"):
                 open_func = xr.open_zarr
             else:
-                open_func = xr.open_dataset
+                open_func = xr.mfopen_dataset
             thedata = open_func(thedata)
             strs = item_id.split('_')
             theretdata = {}
@@ -2081,7 +2081,7 @@ class EDRProviderXarraysDaily(BaseProvider):
             if thedata.endswith(".zarr"):
                 open_func = xr.open_zarr
             else:
-                open_func = xr.open_dataset
+                open_func = xr.mfopen_dataset
             thedata = open_func(thedata)
             theproperties = self._get_coverage_properties(thedata)
             query_params = {}

@@ -61,7 +61,7 @@ from openapi_server.models.observed_property import(
 Logger = logging.getLogger(__name__)
 
 
-class EDRProviderXarraysDaily(BaseProvider):
+class EDRProviderXarraysHalfHourly(BaseProvider):
     """generic Formatter ABC"""
     type = "provider"
     category = "edr"
@@ -2137,12 +2137,13 @@ class EDRProviderXarraysDaily(BaseProvider):
         """
         ret_data = None
         try:
-            thedata = self.provider_def["data"]
-            if thedata.endswith(".zarr"):
-                open_func = xr.open_zarr
-            else:
-                open_func = xr.open_dataset
-            thedata = open_func(thedata)
+            # thedata = self.provider_def["data"]
+            # if thedata.endswith(".zarr"):
+            #    open_func = xr.open_zarr
+            # else:
+            #    open_func = xr.open_dataset
+            # thedata = open_func(thedata)
+            thedata = self._open_data_hdf5files_as_xarray()
             theproperties = self._get_coverage_properties(thedata)
             query_params = {}
             if bbox:
