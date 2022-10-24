@@ -23,7 +23,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Download data")
     parser.add_argument(
-        'action', choices=['convert', 'combine', 'list'],
+        'action', choices=['convert', 'combine', 'combine2', 'list'],
         help='action on processing data')
     parser.add_argument(
         '-l', '--list', required=False, type=str,
@@ -34,11 +34,6 @@ def main():
     parser.add_argument(
         '-v', '--variables', required=False, type=str,
         help='variables as comma-separated list')
-    parser.add_argument(
-        '-p', '--password', required=False, type=str, help='password')
-    parser.add_argument(
-        '-s', '--suffix', required=False, default=".nc4",
-        type=str, help='suffix of files to be downloaded')
     parser.add_argument(
          '--debug', required=False, type=str2bool, nargs='?',
          const=True, default=False, help='debug')

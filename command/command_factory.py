@@ -2,7 +2,8 @@ import importlib
 
 command_list = {
     "convert": {"modulename":"command.command_convert","classname":"CommandConvert"},
-    "combine": {"modulename":"command.command_combine","classname":"CommandCombine"}
+    "combine": {"modulename":"command.command_combine","classname":"CommandCombine"},
+    "combine2": {"modulename":"command.command_combine2","classname":"CommandCombine2"}
 }
 
 class CommandFactory():
