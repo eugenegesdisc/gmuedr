@@ -1060,6 +1060,7 @@ class EDRProviderXarraysDaily(BaseProvider):
         :type f: str
 
         """
+        print("Here... in edr_xarrays_daily.get_data_for_radius")
         ret_data = None
         try:
             thedata = self.provider_def["data"]
